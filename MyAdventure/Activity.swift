@@ -10,9 +10,18 @@ import SwiftData
 
 @Model
 final class Activity {
-    var timestamp: Date
+    var name: String
+    var activityType: String
+    var activityDescription: String
+    var duration: Int
+    var distance: Double
     
-    init(timestamp: Date) {
-        self.timestamp = timestamp
+    init(name: String, activityType: String, activityDescription: String, duration: Int, distance: Double) {
+        self.name = name
+        self.activityType = activityType
+        self.activityDescription = activityDescription
+        self.duration = duration
+        self.distance = distance
     }
+    
 }
