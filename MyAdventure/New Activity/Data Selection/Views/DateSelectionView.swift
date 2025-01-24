@@ -11,7 +11,7 @@ struct DateSelectionView: View {
     @Environment(\.dismiss) var dismiss
     @State private var date = Date()
     @Binding var selectedDate: Date
-   
+  
     
     var body: some View {
         
@@ -30,7 +30,7 @@ struct DateSelectionView: View {
             }
             
             HStack {
-                DatePicker("Select activity date", selection: $date, displayedComponents: .date)
+                DatePicker("Select activity date", selection: $date, in: ...Date(), displayedComponents: .date)
                     .datePickerStyle(.graphical)
             }
             .padding()
