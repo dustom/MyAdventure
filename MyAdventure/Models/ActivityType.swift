@@ -7,10 +7,11 @@
 
 import Foundation
 
-enum ActivityType: String {
+enum ActivityType: String, CaseIterable, Identifiable {
     case running = "Running"
     case swimming = "Swimming"
     case hiking = "Hiking"
     case cycling = "Cycling"
     case other = "Other"
+    var id: Self { self }
 }
