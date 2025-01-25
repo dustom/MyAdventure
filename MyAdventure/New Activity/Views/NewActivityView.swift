@@ -28,8 +28,7 @@ struct NewActivityView: View {
     @State private var isPopupPresented = false
     @FocusState private var isTyping
     
-    
-    // TODO: maku sure that user is asked, if they really want to leave - ie. when swiping left 
+   
     
     var body: some View {
         
@@ -53,8 +52,12 @@ struct NewActivityView: View {
                                 isSelectionPresented: $isActivityTypeSelectionPresented
                             )
                             .onAppear(){
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                    scrollToItem("Activity", proxy: proxy)
+                                withAnimation(.smooth){
+                                    isTyping = false
+                                    resetOtherSelections(except: "Activity")
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        scrollToItem("Activity", proxy: proxy)
+                                    }
                                 }
                             }
                         }
@@ -71,8 +74,12 @@ struct NewActivityView: View {
                                 isSelectionPresented: $isDurationSelectionPresented
                             )
                             .onAppear(){
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                    scrollToItem("Duration", proxy: proxy)
+                                withAnimation(.smooth){
+                                    isTyping = false
+                                    resetOtherSelections(except: "Duration")
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        scrollToItem("Duration", proxy: proxy)
+                                    }
                                 }
                             }
                         }
@@ -89,8 +96,12 @@ struct NewActivityView: View {
                                 isSelectionPresented: $isDistanceSelectionPresented
                             )
                             .onAppear(){
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                    scrollToItem("Distance", proxy: proxy)
+                                withAnimation(.smooth){
+                                    isTyping = false
+                                    resetOtherSelections(except: "Distance")
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        scrollToItem("Distance", proxy: proxy)
+                                    }
                                 }
                             }
                         }
@@ -106,8 +117,12 @@ struct NewActivityView: View {
                                 selectedExertion: $exertion,
                                 isSelectionPresented:$isExertionSelectionPresented)
                             .onAppear(){
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                    scrollToItem("Exertion", proxy: proxy)
+                                withAnimation(.smooth){
+                                    isTyping = false
+                                    resetOtherSelections(except: "Exertion")
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        scrollToItem("Exertion", proxy: proxy)
+                                    }
                                 }
                             }
                         }
@@ -124,8 +139,11 @@ struct NewActivityView: View {
                     ) {
                         DateSelectionView(selectedDate: $selectedDate, isSelectionPresented: $isDateSelectionPresented)
                             .onAppear(){
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                    scrollToItem("Date", proxy: proxy)
+                                withAnimation(.smooth){
+                                    resetOtherSelections(except: "Date")
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        scrollToItem("Date", proxy: proxy)
+                                    }
                                 }
                             }
                     }
@@ -134,7 +152,6 @@ struct NewActivityView: View {
                     
                 }
             }
-            
             
             .padding(.horizontal)
             
@@ -147,9 +164,18 @@ struct NewActivityView: View {
                     addItem()
                 }
             }
+            ToolbarItem(placement: .keyboard) {
+                    HStack {
+                        Button("Cancel") {
+                            isTyping = false
+                        }
+                        Spacer()
+                        Button("Done", systemImage: "keyboard.chevron.compact.down"){
+                            isTyping = false
+                    }
+                }
+            }
         }
-        
-        
     }
     
     private func scrollToItem(_ id: String, proxy: ScrollViewProxy) {
@@ -172,6 +198,39 @@ struct NewActivityView: View {
             )
             modelContext.insert(newItem)
             dismiss()
+        }
+    }
+    
+    // Helper function to reset all selection states except the one being toggled
+    private func resetOtherSelections(except selected: String) {
+        switch selected {
+        case "Duration":
+            isDistanceSelectionPresented = false
+            isActivityTypeSelectionPresented = false
+            isExertionSelectionPresented = false
+            isDateSelectionPresented = false
+        case "Distance":
+            isDurationSelectionPresented = false
+            isActivityTypeSelectionPresented = false
+            isExertionSelectionPresented = false
+            isDateSelectionPresented = false
+        case "Activity":
+            isDurationSelectionPresented = false
+            isDistanceSelectionPresented = false
+            isExertionSelectionPresented = false
+            isDateSelectionPresented = false
+        case "Exertion":
+            isDurationSelectionPresented = false
+            isDistanceSelectionPresented = false
+            isActivityTypeSelectionPresented = false
+            isDateSelectionPresented = false
+        case "Date":
+            isDurationSelectionPresented = false
+            isDistanceSelectionPresented = false
+            isActivityTypeSelectionPresented = false
+            isExertionSelectionPresented = false
+        default:
+            break
         }
     }
 }

@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+import SwiftUI
+
 struct ClickableFormItemView<Content: View>: View {
     @Binding var isSelectionPresented: Bool
     var itemName: String
@@ -15,34 +17,36 @@ struct ClickableFormItemView<Content: View>: View {
     
     var body: some View {
         VStack {
-            HStack {
-                VStack(alignment: .leading) {
-                    HStack {
-                        Text(itemName)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                    }
-                    HStack {
-                        Text(itemData)
-                        Spacer()
-                    }
+            Button {
+                withAnimation(.smooth) {
+                    isSelectionPresented.toggle()
                 }
-                Spacer()
-                
-                Button {
-                    withAnimation(.smooth) {
-                        isSelectionPresented.toggle()
+            } label: {
+                HStack {
+                    VStack(alignment: .leading) {
+                        HStack {
+                            Text(itemName)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                        }
+                        HStack {
+                            Text(itemData)
+                            Spacer()
+                        }
                     }
-                } label: {
+                    Spacer()
+                    
                     Image(systemName: "chevron.right")
                         .rotationEffect(.degrees(isSelectionPresented ? 90 : 0)) // Rotate the chevron
                         .animation(.smooth, value: isSelectionPresented)
                         .font(.title2)
                         .foregroundStyle(.primary)
                 }
+                .padding()
+                .contentShape(Rectangle()) // Ensure the entire area is tappable
             }
-            .padding()
+            .buttonStyle(.plain) // Remove button styling
             
             if isSelectionPresented {
                 content() // Render the passed-in view
