@@ -11,34 +11,22 @@ struct DateSelectionView: View {
     @Environment(\.dismiss) var dismiss
     @State private var date = Date()
     @Binding var selectedDate: Date
-  
+    @Binding var isSelectionPresented: Bool
     
     var body: some View {
         
         VStack {
-            HStack
-            {
-                Spacer ()
-                Button("Cancel", systemImage: "xmark.circle.fill") {
-                    dismiss()
-                }
-                .labelStyle(.iconOnly)
-                .font(.title2)
-                .foregroundStyle(.secondary.opacity(0.7))
-                .padding(.trailing)
-                .padding(.top, 20)
-            }
-            
             HStack {
                 DatePicker("Select activity date", selection: $date, in: ...Date(), displayedComponents: .date)
                     .datePickerStyle(.graphical)
             }
-            .padding()
-            Spacer()
+            .padding([.horizontal,. bottom])
             
             Button {
                 selectedDate = date
-                dismiss()
+                withAnimation(.smooth){
+                    isSelectionPresented = false
+                }
             } label: {
                 Text("Confirm")
                     .foregroundColor(.primary)
@@ -49,10 +37,12 @@ struct DateSelectionView: View {
             }
             Spacer()
         }
+        .padding(.bottom)
     }
 }
 
 #Preview {
     @Previewable @State var date: Date = Date()
-    DateSelectionView(selectedDate: $date)
+    @Previewable @State var closeSelection: Bool = true
+    DateSelectionView(selectedDate: $date, isSelectionPresented: $closeSelection)
 }

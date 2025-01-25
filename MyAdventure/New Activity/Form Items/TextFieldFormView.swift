@@ -8,9 +8,10 @@
 import SwiftUI
 
 struct TextFieldFormView: View {
-   @Binding var textInput: String
+    @Binding var textInput: String
     var itemName: String
-    
+   
+
     var body: some View {
         HStack {
             VStack {
@@ -51,3 +52,6 @@ struct TextFieldFormView: View {
     @Previewable @State var activityDescription: String = "My description"
     TextFieldFormView(textInput: $activityDescription, itemName: "Name")
 }
+
+
+

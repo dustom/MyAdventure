@@ -8,26 +8,14 @@ import Foundation
 import SwiftUI
 
 public struct DurationSelectionView: View {
-    @Environment(\.dismiss) var dismiss
     @State private var hours: Int = 0
     @State private var minutes: Int = 0
     @Binding var selectedHours: Int
     @Binding var selectedMinutes: Int
+    @Binding var isSelectionPresented: Bool
     
     public var body: some View {
         VStack {
-            HStack
-            {
-                Spacer ()
-                Button("Cancel", systemImage: "xmark.circle.fill") {
-                    dismiss()
-                }
-                .labelStyle(.iconOnly)
-                .font(.title2)
-                .foregroundStyle(.secondary.opacity(0.7))
-                .padding(.trailing)
-                .padding(.top, 20)
-            }
             HStack {
                 Spacer()
                 Picker("Select hours", selection: $hours) {
@@ -49,12 +37,14 @@ public struct DurationSelectionView: View {
                 Text("min")
                 Spacer()
             }
-            Spacer ()
+            .padding([.horizontal,. bottom])
             
             Button {
                 selectedHours = hours
                 selectedMinutes = minutes
-                dismiss()
+                withAnimation(.smooth){
+                    isSelectionPresented = false
+                }
             } label: {
                 Text("Confirm")
                     .foregroundColor(.primary)
@@ -65,6 +55,7 @@ public struct DurationSelectionView: View {
             }
             Spacer ()
         }
+        .padding(.bottom)
     }
     
 }
@@ -72,5 +63,6 @@ public struct DurationSelectionView: View {
 #Preview {
     @Previewable @State var hr: Int = 5
     @Previewable @State var min: Int = 30
-    DurationSelectionView(selectedHours: $hr, selectedMinutes: $min)
+    @Previewable @State var closeSelection: Bool = true
+    DurationSelectionView(selectedHours: $hr, selectedMinutes: $min, isSelectionPresented: $closeSelection)
 }

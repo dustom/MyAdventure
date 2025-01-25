@@ -7,49 +7,56 @@
 
 import SwiftUI
 
-struct ClickableFormItemView: View {
+struct ClickableFormItemView<Content: View>: View {
     @Binding var isSelectionPresented: Bool
     var itemName: String
     var itemData: String
+    @ViewBuilder var content: () -> Content
     
     var body: some View {
-        HStack {
-            VStack {
-                HStack{
-                    Text ("\(itemName)")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Spacer()
+        VStack {
+            HStack {
+                VStack(alignment: .leading) {
+                    HStack {
+                        Text(itemName)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                    HStack {
+                        Text(itemData)
+                        Spacer()
+                    }
                 }
-                .padding([.top, .leading], 10)
-                HStack{
-                    Text("\(itemData)")
-                    Spacer()
-                }
-                .padding(.leading, 10)
-                .padding(.top, 1)
                 Spacer()
                 
-            }
-            VStack {
-                Image(systemName: "chevron.right")
-                    .font(.title2)
-                    .foregroundStyle(.secondary)
+                Button {
+                    withAnimation(.smooth) {
+                        isSelectionPresented.toggle()
+                    }
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .rotationEffect(.degrees(isSelectionPresented ? 90 : 0)) // Rotate the chevron
+                        .animation(.smooth, value: isSelectionPresented)
+                        .font(.title2)
+                        .foregroundStyle(.primary)
+                }
             }
             .padding()
+            
+            if isSelectionPresented {
+                content() // Render the passed-in view
+            }
         }
-        .padding(.leading, 10)
-        
-        .frame(height: 70)
         .background(.thinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 15))
-        .onTapGesture {
-            isSelectionPresented = true
-        }
     }
 }
 
 #Preview {
     @Previewable @State var showSheet = false
-    ClickableFormItemView(isSelectionPresented: $showSheet, itemName: "Item name", itemData: "Item data")
+    @Previewable @State var closeSelection: Bool = true
+    ClickableFormItemView(isSelectionPresented: $showSheet, itemName: "Item name", itemData: "Item data") {
+        ExertionSelectionView(selectedExertion: .constant(1), isSelectionPresented: $closeSelection)
+    }
 }

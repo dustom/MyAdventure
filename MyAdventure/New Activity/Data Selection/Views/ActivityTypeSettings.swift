@@ -8,28 +8,15 @@
 import SwiftUI
 
 struct ActivityTypeSettingsView: View {
-    @Environment(\.dismiss) var dismiss
     @State private var activityType: ActivityType = .running
     @Binding var selectedActivityType: ActivityType
+    @Binding var isSelectionPresented: Bool
     
     
     var body: some View {
         
         
         VStack {
-            HStack
-            {
-                Spacer ()
-                Button("Cancel", systemImage: "xmark.circle.fill") {
-                    dismiss()
-                }
-                .labelStyle(.iconOnly)
-                .font(.title2)
-                .foregroundStyle(.secondary.opacity(0.7))
-                .padding(.trailing)
-                .padding(.top, 20)
-            }
-
             HStack {
                 Picker("Select activity", selection: $activityType) {
                     ForEach(ActivityType.allCases) { activity in
@@ -40,12 +27,13 @@ struct ActivityTypeSettingsView: View {
                 .frame(width: 200, height: 150)
                 
             }
-            
-            Spacer()
-            
+            .padding([.horizontal,. bottom])
+ 
             Button {
                 selectedActivityType = activityType
-                dismiss()
+                withAnimation(.smooth){
+                    isSelectionPresented = false
+                }
             } label: {
                 Text("Confirm")
                     .foregroundColor(.primary)
@@ -56,11 +44,13 @@ struct ActivityTypeSettingsView: View {
             }
             Spacer()
         }
+        .padding(.bottom)
     }
 }
 
 
 #Preview {
     @Previewable @State var activity: ActivityType = .cycling
-    ActivityTypeSettingsView(selectedActivityType: $activity)
+    @Previewable @State var closeSelection: Bool = true
+    ActivityTypeSettingsView(selectedActivityType: $activity, isSelectionPresented: $closeSelection)
 }

@@ -8,27 +8,14 @@ import Foundation
 import SwiftUI
 
 public struct DistanceSelectionView: View {
-    @Environment(\.dismiss) var dismiss
     @State private var kmDistance: Int = 0
     @State private var mDistance: Int = 0
     @Binding var selectedKmDistance: Int
     @Binding var selectedMDistance: Int
+    @Binding var isSelectionPresented: Bool
     
     public var body: some View {
         VStack {
-            HStack
-            {
-                Spacer ()
-                Button("Cancel", systemImage: "xmark.circle.fill") {
-                    dismiss()
-                }
-                .labelStyle(.iconOnly)
-                .font(.title2)
-                .foregroundStyle(.secondary.opacity(0.7))
-                .padding(.trailing)
-                .padding(.top, 20)
-            }
-            
             HStack {
                 Spacer()
                 Picker("Select km", selection: $kmDistance) {
@@ -54,12 +41,14 @@ public struct DistanceSelectionView: View {
                 Text("km")
                 Spacer()
             }
-            Spacer()
+            .padding([.horizontal,. bottom])
             
             Button {
                 selectedKmDistance = kmDistance
                 selectedMDistance = mDistance
-                dismiss()
+                withAnimation(.smooth){
+                    isSelectionPresented = false
+                }
             } label: {
                 Text("Confirm")
                     .foregroundColor(.primary)
@@ -70,11 +59,13 @@ public struct DistanceSelectionView: View {
             }
             Spacer()
         }
+        .padding(.bottom)
     }
 }
 
 #Preview {
     @Previewable @State var km: Int = 5
     @Previewable @State var m: Int = 5
-    DistanceSelectionView(selectedKmDistance: $km, selectedMDistance: $m)
+    @Previewable @State var closeSelection: Bool = true
+    DistanceSelectionView(selectedKmDistance: $km, selectedMDistance: $m, isSelectionPresented: $closeSelection)
 }
