@@ -27,144 +27,151 @@ struct NewActivityView: View {
     @State var selectedDate = Date()
     @State private var isPopupPresented = false
     @FocusState private var isTyping
+    @State private var isCancelAlertPresented = false
+    @State private var isEmptyNameAlertPresented = false
     
-   
+    
     
     var body: some View {
-        
-        ScrollViewReader { proxy in
-            ScrollView {
-                ZStack {
-                    VStack {
-                        TextFieldFormView(textInput: $name, itemName: "Name")
-                            .focused($isTyping)
-                        
-                        TextFieldFormView(textInput: $activityDescription, itemName: "Description")
-                            .focused($isTyping)
-                        
-                        ClickableFormItemView(
-                            isSelectionPresented: $isActivityTypeSelectionPresented,
-                            itemName: "Activity",
-                            itemData: "\(activityType.rawValue)"
-                        ) {
-                            ActivityTypeSettingsView(
-                                selectedActivityType: $activityType,
-                                isSelectionPresented: $isActivityTypeSelectionPresented
-                            )
-                            .onAppear(){
-                                withAnimation(.smooth){
-                                    isTyping = false
-                                    resetOtherSelections(except: "Activity")
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                        scrollToItem("Activity", proxy: proxy)
+        NavigationStack {
+            ScrollViewReader { proxy in
+                ScrollView {
+                    ZStack {
+                        VStack {
+                            TextFieldFormView(textInput: $name, itemName: "Name")
+                                .focused($isTyping)
+                            
+                            TextFieldFormView(textInput: $activityDescription, itemName: "Description")
+                                .focused($isTyping)
+                            
+                            ClickableFormItemView(
+                                isSelectionPresented: $isActivityTypeSelectionPresented,
+                                itemName: "Activity",
+                                itemData: "\(activityType.rawValue)"
+                            ) {
+                                ActivityTypeSettingsView(
+                                    selectedActivityType: $activityType,
+                                    isSelectionPresented: $isActivityTypeSelectionPresented
+                                )
+                                .onAppear(){
+                                    withAnimation(.smooth){
+                                        isTyping = false
+                                        resetOtherSelections(except: "Activity")
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                            scrollToItem("Activity", proxy: proxy)
+                                        }
                                     }
                                 }
                             }
-                        }
-                        .id("Activity")
-                        
-                        ClickableFormItemView(
-                            isSelectionPresented: $isDurationSelectionPresented,
-                            itemName: "Duration",
-                            itemData: "\(durationHr) hr \(Int(durationMin) * 10) min"
-                        ) {
-                            DurationSelectionView(
-                                selectedHours: $durationHr,
-                                selectedMinutes: $durationMin,
-                                isSelectionPresented: $isDurationSelectionPresented
-                            )
-                            .onAppear(){
-                                withAnimation(.smooth){
-                                    isTyping = false
-                                    resetOtherSelections(except: "Duration")
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                        scrollToItem("Duration", proxy: proxy)
+                            .id("Activity")
+                            
+                            ClickableFormItemView(
+                                isSelectionPresented: $isDurationSelectionPresented,
+                                itemName: "Duration",
+                                itemData: "\(durationHr) hr \(Int(durationMin) * 10) min"
+                            ) {
+                                DurationSelectionView(
+                                    selectedHours: $durationHr,
+                                    selectedMinutes: $durationMin,
+                                    isSelectionPresented: $isDurationSelectionPresented
+                                )
+                                .onAppear(){
+                                    withAnimation(.smooth){
+                                        isTyping = false
+                                        resetOtherSelections(except: "Duration")
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                            scrollToItem("Duration", proxy: proxy)
+                                        }
                                     }
                                 }
                             }
-                        }
-                        .id("Duration")
-                        
-                        ClickableFormItemView(
-                            isSelectionPresented: $isDistanceSelectionPresented,
-                            itemName: "Distance",
-                            itemData: "\(distanceKm),\(distanceM) km"
-                        ) {
-                            DistanceSelectionView(
-                                selectedKmDistance: $distanceKm,
-                                selectedMDistance: $distanceM,
-                                isSelectionPresented: $isDistanceSelectionPresented
-                            )
-                            .onAppear(){
-                                withAnimation(.smooth){
-                                    isTyping = false
-                                    resetOtherSelections(except: "Distance")
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                        scrollToItem("Distance", proxy: proxy)
+                            .id("Duration")
+                            
+                            ClickableFormItemView(
+                                isSelectionPresented: $isDistanceSelectionPresented,
+                                itemName: "Distance",
+                                itemData: "\(distanceKm),\(distanceM) km"
+                            ) {
+                                DistanceSelectionView(
+                                    selectedKmDistance: $distanceKm,
+                                    selectedMDistance: $distanceM,
+                                    isSelectionPresented: $isDistanceSelectionPresented
+                                )
+                                .onAppear(){
+                                    withAnimation(.smooth){
+                                        isTyping = false
+                                        resetOtherSelections(except: "Distance")
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                            scrollToItem("Distance", proxy: proxy)
+                                        }
                                     }
                                 }
                             }
-                        }
-                        .id("Distance")
-                        
-                        
-                        ClickableFormItemView(
-                            isSelectionPresented: $isExertionSelectionPresented,
-                            itemName: "Percieved Exertion",
-                            itemData: "\(exertion)/10"
-                        ) {
-                            ExertionSelectionView(
-                                selectedExertion: $exertion,
-                                isSelectionPresented:$isExertionSelectionPresented)
-                            .onAppear(){
-                                withAnimation(.smooth){
-                                    isTyping = false
-                                    resetOtherSelections(except: "Exertion")
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                        scrollToItem("Exertion", proxy: proxy)
+                            .id("Distance")
+                            
+                            
+                            ClickableFormItemView(
+                                isSelectionPresented: $isExertionSelectionPresented,
+                                itemName: "Percieved Exertion",
+                                itemData: "\(exertion)/10"
+                            ) {
+                                ExertionSelectionView(
+                                    selectedExertion: $exertion,
+                                    isSelectionPresented:$isExertionSelectionPresented)
+                                .onAppear(){
+                                    withAnimation(.smooth){
+                                        isTyping = false
+                                        resetOtherSelections(except: "Exertion")
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                            scrollToItem("Exertion", proxy: proxy)
+                                        }
                                     }
                                 }
                             }
+                            .id("Exertion")
                         }
-                        .id("Exertion")
+                    }.onTapGesture {
+                        isTyping = false
                     }
-                }.onTapGesture {
-                    isTyping = false
-                }
-                VStack{
-                    ClickableFormItemView(
-                        isSelectionPresented: $isDateSelectionPresented,
-                        itemName: "Date",
-                        itemData: "\(selectedDate.formatted(date: .numeric, time: .omitted))"
-                    ) {
-                        DateSelectionView(selectedDate: $selectedDate, isSelectionPresented: $isDateSelectionPresented)
-                            .onAppear(){
-                                withAnimation(.smooth){
-                                    resetOtherSelections(except: "Date")
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                        scrollToItem("Date", proxy: proxy)
+                    VStack{
+                        ClickableFormItemView(
+                            isSelectionPresented: $isDateSelectionPresented,
+                            itemName: "Date",
+                            itemData: "\(selectedDate.formatted(date: .numeric, time: .omitted))"
+                        ) {
+                            DateSelectionView(selectedDate: $selectedDate, isSelectionPresented: $isDateSelectionPresented)
+                                .onAppear(){
+                                    withAnimation(.smooth){
+                                        resetOtherSelections(except: "Date")
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                            scrollToItem("Date", proxy: proxy)
+                                        }
                                     }
                                 }
-                            }
+                        }
+                        .padding(.bottom)
+                        .id("Date") // Assign unique ID
+                        
                     }
-                    .padding(.bottom)
-                    .id("Date") // Assign unique ID
-                    
                 }
+                
+                .padding(.horizontal)
+                
             }
-            
-            .padding(.horizontal)
-            
-        }
-        .navigationTitle("New Activity")
-        .preferredColorScheme(.dark)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Save") {
-                    addItem()
+            .navigationTitle("New Activity")
+            .preferredColorScheme(.dark)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Save") {
+                        addItem()
+                    }
                 }
-            }
-            ToolbarItem(placement: .keyboard) {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") {
+                        isCancelAlertPresented = true
+                    }
+                }
+                ToolbarItem(placement: .keyboard) {
                     HStack {
                         Button("Cancel") {
                             isTyping = false
@@ -172,9 +179,29 @@ struct NewActivityView: View {
                         Spacer()
                         Button("Done", systemImage: "keyboard.chevron.compact.down"){
                             isTyping = false
+                        }
                     }
                 }
             }
+        }
+        .alert(isPresented: $isCancelAlertPresented) {
+            Alert(
+                title: Text("Are you sure?"),
+                message: Text("Do you want leave without saving your activity?"),
+                primaryButton: .destructive(Text("Yes")) {
+                    dismiss()
+                },
+                secondaryButton: .cancel(Text("No")) {
+                    
+                }
+            )
+        }
+        
+        .alert(isPresented: $isEmptyNameAlertPresented) {
+            Alert(
+                title: Text("Missing name"),
+                message: Text("You need to fill in the activity name before saving it.")
+            )
         }
     }
     
@@ -185,19 +212,23 @@ struct NewActivityView: View {
     }
     
     private func addItem() {
-        withAnimation {
-            let duration = Int(durationHr) * 60 + Int(durationMin)
-            let distance = Double(distanceKm) + Double(distanceM) / 10
-            let newItem = Activity(
-                name: name,
-                activityType: activityType.rawValue,
-                activityDescription: activityDescription,
-                duration: duration,
-                distance: distance,
-                exertion: exertion
-            )
-            modelContext.insert(newItem)
-            dismiss()
+        if name == "" {
+            isEmptyNameAlertPresented = true
+        } else {
+            withAnimation {
+                let duration = Int(durationHr) * 60 + Int(durationMin)
+                let distance = Double(distanceKm) + Double(distanceM) / 10
+                let newItem = Activity(
+                    name: name,
+                    activityType: activityType.rawValue,
+                    activityDescription: activityDescription,
+                    duration: duration,
+                    distance: distance,
+                    exertion: exertion
+                )
+                modelContext.insert(newItem)
+                dismiss()
+            }
         }
     }
     

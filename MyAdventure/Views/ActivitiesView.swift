@@ -32,14 +32,18 @@ struct ActivitiesView: View {
                     }
                 }
                 ToolbarItem(placement: .navigationBarLeading){
-                    NavigationLink(destination: NewActivityView()) {
-                        Label("New Activity", systemImage: "plus")
+                    Button("New Activity", systemImage: "plus") {
+                        isNewActivityPresented =  true
                     }
                 }
             }
             .preferredColorScheme(.dark)
             .navigationTitle("My Activities")
         }
+        .fullScreenCover(isPresented: $isNewActivityPresented) {
+            NewActivityView()
+        }
+        
         
     }
     
