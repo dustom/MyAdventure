@@ -40,6 +40,12 @@ struct NewActivityView: View {
                         VStack {
                             TextFieldFormView(textInput: $name, itemName: "Name")
                                 .focused($isTyping)
+                                .alert(isPresented: $isEmptyNameAlertPresented) {
+                                    Alert(
+                                        title: Text("Missing name"),
+                                        message: Text("You need to fill in the activity name before saving it.")
+                                    )
+                                }
                             
                             TextFieldFormView(textInput: $activityDescription, itemName: "Description")
                                 .focused($isTyping)
@@ -184,6 +190,7 @@ struct NewActivityView: View {
                 }
             }
         }
+                
         .alert(isPresented: $isCancelAlertPresented) {
             Alert(
                 title: Text("Are you sure?"),
@@ -197,12 +204,7 @@ struct NewActivityView: View {
             )
         }
         
-        .alert(isPresented: $isEmptyNameAlertPresented) {
-            Alert(
-                title: Text("Missing name"),
-                message: Text("You need to fill in the activity name before saving it.")
-            )
-        }
+
     }
     
     private func scrollToItem(_ id: String, proxy: ScrollViewProxy) {
