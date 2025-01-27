@@ -16,14 +16,17 @@ final class Activity {
     var duration: Int
     var distance: Double
     var exertion: Int
+    var date: Date
     
-    init(name: String, activityType: String, activityDescription: String, duration: Int, distance: Double, exertion: Int) {
+    init(name: String, activityType: String, activityDescription: String, duration: Int, distance: Double, exertion: Int, date: Date) {
         self.name = name
         self.activityType = activityType
         self.activityDescription = activityDescription
         self.duration = duration
         self.distance = distance
         self.exertion = exertion
+        self.date = date
+    
     }
     
 }

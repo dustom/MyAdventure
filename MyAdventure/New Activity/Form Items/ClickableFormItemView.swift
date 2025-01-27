@@ -13,6 +13,7 @@ struct ClickableFormItemView<Content: View>: View {
     @Binding var isSelectionPresented: Bool
     var itemName: String
     var itemData: String
+    
     @ViewBuilder var content: () -> Content
     
     var body: some View {
@@ -38,18 +39,18 @@ struct ClickableFormItemView<Content: View>: View {
                     Spacer()
                     
                     Image(systemName: "chevron.right")
-                        .rotationEffect(.degrees(isSelectionPresented ? 90 : 0)) // Rotate the chevron
+                        .rotationEffect(.degrees(isSelectionPresented ? 90 : 0))
                         .animation(.smooth, value: isSelectionPresented)
                         .font(.title2)
                         .foregroundStyle(.primary)
                 }
                 .padding()
-                .contentShape(Rectangle()) // Ensure the entire area is tappable
+                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain) // Remove button styling
+            .buttonStyle(.plain)
             
             if isSelectionPresented {
-                content() // Render the passed-in view
+                content()
             }
         }
         .background(.thinMaterial)

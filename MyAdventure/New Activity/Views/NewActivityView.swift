@@ -29,8 +29,7 @@ struct NewActivityView: View {
     @FocusState private var isTyping
     @State private var isCancelAlertPresented = false
     @State private var isEmptyNameAlertPresented = false
-    
-    
+    private var wasEmptyNameAlertPresented = false
     
     var body: some View {
         NavigationStack {
@@ -40,6 +39,10 @@ struct NewActivityView: View {
                         VStack {
                             TextFieldFormView(textInput: $name, itemName: "Name")
                                 .focused($isTyping)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .stroke(isEmptyNameAlertPresented ? Color.red.opacity(0.7) : .primary.opacity(0.0))
+                                )
                                 .alert(isPresented: $isEmptyNameAlertPresented) {
                                     Alert(
                                         title: Text("Missing name"),
@@ -190,7 +193,7 @@ struct NewActivityView: View {
                 }
             }
         }
-                
+        
         .alert(isPresented: $isCancelAlertPresented) {
             Alert(
                 title: Text("Are you sure?"),
@@ -204,7 +207,7 @@ struct NewActivityView: View {
             )
         }
         
-
+        
     }
     
     private func scrollToItem(_ id: String, proxy: ScrollViewProxy) {
@@ -226,7 +229,8 @@ struct NewActivityView: View {
                     activityDescription: activityDescription,
                     duration: duration,
                     distance: distance,
-                    exertion: exertion
+                    exertion: exertion,
+                    date: selectedDate
                 )
                 modelContext.insert(newItem)
                 dismiss()
