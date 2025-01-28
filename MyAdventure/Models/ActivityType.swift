@@ -14,4 +14,5 @@ enum ActivityType: String, CaseIterable, Identifiable {
     case cycling = "Cycling"
     case other = "Other"
     var id: Self { self }
+    
 }

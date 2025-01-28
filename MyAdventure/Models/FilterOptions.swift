@@ -8,19 +8,17 @@
 import Foundation
 
 enum FilterOptions: String, CaseIterable, Identifiable {
-    case all
-    case distanceAscending
-    case distanceDescending
-    case durationAscending
-    case durationDescending
-    case dateAscending
     case dateDescending
+    case dateAscending
+    case distanceDescending
+    case distanceAscending
+    case durationDescending
+    case durationAscending
+
     var id: Self { self }
     
     var label: String {
             switch self {
-            case .all:
-                return "All"
             case .distanceAscending, .distanceDescending:
                 return "Distance"
             case .durationAscending, .durationDescending:
@@ -32,8 +30,6 @@ enum FilterOptions: String, CaseIterable, Identifiable {
     
     var arrow: String {
             switch self {
-            case .all:
-                return ""
             case .distanceAscending, .durationAscending, .dateAscending:
                 return "arrow.up"
             case .distanceDescending, .durationDescending, .dateDescending:
