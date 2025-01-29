@@ -13,7 +13,9 @@ struct FilterOptionsView: View {
     @Environment(\.dismiss) var dismiss
     @Binding var filteringOptions: FilterOptions
     @Binding var selectedActivities: Set<ActivityType>
-    @State private var selectAllActivities: Bool = true
+    private var selectAllActivities: Bool {
+        selectedActivities == Set(ActivityType.allCases)
+    }
     
     //TODO: fix a bug - when deselecting all and coming back, the all is selected alone - makes sense, the sheet is generated again and with that selectAllActivities is set to True
     
@@ -45,11 +47,10 @@ struct FilterOptionsView: View {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        selectAllActivities.toggle()
                         if selectAllActivities {
-                            selectedActivities = Set(ActivityType.allCases)
-                        } else {
                             selectedActivities = []
+                        } else {
+                            selectedActivities = Set(ActivityType.allCases)
                         }
                     }
                     

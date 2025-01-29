@@ -25,7 +25,7 @@ struct MyAdventureApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ActivitiesView()
+            MainView()
                 .preferredColorScheme(.dark)
                 
         }

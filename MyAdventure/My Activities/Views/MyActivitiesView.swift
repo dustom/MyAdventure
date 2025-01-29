@@ -8,9 +8,9 @@
 import SwiftUI
 import SwiftData
 
-struct ActivitiesView: View {
+struct MyActivitiesView: View {
     @Environment(\.modelContext) private var modelContext
-    //    @Query private var activities: [Activity]
+//        @Query private var activities: [Activity]
     
     private var activities: [Activity] = [
         Activity(name: "Morning Run", activityType: "Running", activityDescription: "A short morning jog", duration: 30, distance: 5.0, exertion: 6, date: Date()),
@@ -26,12 +26,6 @@ struct ActivitiesView: View {
     ]
     
     
-    //TODO: Try to put the menu just for the Distance/Duration/Date and put the arrow for descending and ascending next to it for toggling
-    
-    
-    
-    
-    
     @State private var isNewActivityPresented = false
     @State private var searchText: String = ""
     @State private var filteringOptions: FilterOptions = .dateDescending
@@ -44,41 +38,9 @@ struct ActivitiesView: View {
                 ForEach(filteredActivities) { item in
                     
                     NavigationLink {
-                        Text("\(item.name)")
+                        ActivityDetailView(activity: item)
                     } label: {
-                        HStack{
-                            
-                            Image(systemName: getActivityIcon(for: item.activityType.lowercased()))
-                                .font(.title)
-                                .padding(.horizontal)
-                            
-                        }
-                        .frame(width: 50)
-                        HStack {
-                            VStack(alignment: .leading){
-                                HStack{
-                                    Text("\(item.name)")
-                                        .font(.title3)
-                                }
-                                
-                                HStack{
-                                    if item.distance > 0 {
-                                        Text(String(format: "%.1f km", item.distance))
-                                            .font(.caption)
-                                    }
-                                    //TODO: display time in hours after 2 hour mark
-                                    Text("\(item.duration) min")
-                                        .font(.caption)
-                                    
-                                    //TODO: add speed based on activity - km/h with cycling and pace with hiking and running
-                                }
-                                HStack{
-                                    Text("\(item.date.formatted(date: .numeric, time: .omitted))")
-                                        .font(.caption)
-                                }
-                            }
-                        }
-                        .padding(.horizontal)
+                        ActivityNavigationLinkView(activity: item)
                     }
                 }
                 .onDelete(perform: deleteItems)
@@ -90,6 +52,8 @@ struct ActivitiesView: View {
                     ContentUnavailableView("No Activities", systemImage: "square.3.layers.3d.slash", description: Text("Create an activity by tapping the plus button."))
                 } else if searchedActivities.isEmpty && !searchText.isEmpty{
                     ContentUnavailableView.search(text: searchText)
+                } else if filteredActivities.isEmpty {
+                    ContentUnavailableView("No Activities Found", systemImage: "square.3.layers.3d.slash", description: Text(selectedActivities == [] ? "Select at least one activity type filter." : "Try a different filter or create a new activity of the following type: \(selectedActivities.map(\.rawValue).joined(separator: ", "))."))
                 }
             }
             
@@ -117,10 +81,7 @@ struct ActivitiesView: View {
         .sheet(isPresented: $isFilterOptionsPresented) {
             FilterOptionsView(filteringOptions: $filteringOptions, selectedActivities: $selectedActivities)
         }
-        
-        
-        
-        
+
     }
     
     var sortedActivities: [Activity] {
@@ -141,32 +102,14 @@ struct ActivitiesView: View {
         
     }
     
-    
     var filteredActivities: [Activity] {
         sortedActivities.filter { activity in
         selectedActivities.contains { $0.rawValue == activity.activityType }
         }
     }
     
-    
-    private func getActivityIcon(for activityType: String) -> String {
-        switch activityType {
-        case "running":
-            return "figure.run"
-        case "cycling":
-            return "figure.outdoor.cycle"
-        case "swimming":
-            return "figure.pool.swim"
-        case "hiking":
-            return "figure.hiking"
-        default:
-            return "figure.walk"
-        }
-    }
-    
-    
     var searchedActivities: [Activity] {
-        guard !searchText.isEmpty else { return sortedActivities }
+        guard !searchText.isEmpty else { return filteredActivities }
         return sortedActivities.filter { $0.name.localizedCaseInsensitiveContains(searchText)}
     }
     
@@ -183,6 +126,6 @@ struct ActivitiesView: View {
 
 
 #Preview {
-    ActivitiesView()
+    MyActivitiesView()
         .modelContainer(for: Activity.self, inMemory: true)
 }
