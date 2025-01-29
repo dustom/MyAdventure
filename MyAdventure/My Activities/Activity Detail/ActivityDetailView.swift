@@ -43,7 +43,9 @@ struct ActivityDetailView: View {
                     MetricCell(value: vm.formatDuration(activity.duration), label: "Duration")
                     MetricCell(value: String(format: "%.1f km", activity.distance), label: "Distance")
                     MetricCell(value: "\(activity.exertion)/10", label: "Exertion")
-                    MetricCell(value: vm.calculateRate(activity: activity), label: "Speed")
+                    if vm.calculateRate(activity: activity) != "" {
+                        MetricCell(value: vm.calculateRate(activity: activity), label: "Speed")
+                    }
                 }
                 
                 // Description

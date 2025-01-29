@@ -26,18 +26,22 @@ class ActivityViewModel {
         let minutes = Double(activity.duration)
         let distance = activity.distance
         
-        if type == "cycling" {
-            let hours = minutes / 60.0
-            let speed = distance / hours
-            return String(format: "%.1f km/h", speed)
-        }
-        else if ["running", "hiking"].contains(type) {
-            let paceMinutes = minutes / distance
-            let seconds = (paceMinutes.truncatingRemainder(dividingBy: 1) * 60).rounded()
-            return String(format: "%d:%02d min/km", Int(paceMinutes), Int(seconds))
-        }
-        
-        return ""
+         if distance > 0 && minutes > 0 {
+             if ["running", "hiking"].contains(type) {
+                 let paceMinutes = minutes / distance
+                 let seconds = (paceMinutes.truncatingRemainder(dividingBy: 1) * 60).rounded()
+                 return String(format: "%d:%02d min/km", Int(paceMinutes), Int(seconds))
+             }
+             else
+             
+             {
+                 let hours = minutes / 60.0
+                 let speed = distance / hours
+                 return String(format: "%.1f km/h", speed)
+             }
+         } else {
+             return ""
+         }
     }
     
      func getActivityIcon(for activityType: String) -> String {
