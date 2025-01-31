@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct ActivityOverviewView: View {
+    @EnvironmentObject var manager: HealthManager
         @Query private var activities: [Activity]
     
 //    private var activities: [Activity] = [
@@ -29,8 +30,6 @@ struct ActivityOverviewView: View {
         }
     
     var body: some View {
-        
-
                 NavigationStack {
                     VStack {
                         if recentActivities.isEmpty {

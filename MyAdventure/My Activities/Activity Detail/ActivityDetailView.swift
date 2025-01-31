@@ -49,17 +49,20 @@ struct ActivityDetailView: View {
                 }
                 
                 // Description
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Description")
-                        .font(.headline)
-                    
-                    Text(activity.activityDescription)
-                        .font(.body)
-                        .foregroundColor(.secondary)
+                if activity.activityDescription != "" {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Description")
+                            .font(.headline)
+                        
+                        Text(activity.activityDescription)
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(.thickMaterial)
+                    .cornerRadius(12)
                 }
-                .padding()
-                .background(.thickMaterial)
-                .cornerRadius(12)
             }
             .padding()
         }

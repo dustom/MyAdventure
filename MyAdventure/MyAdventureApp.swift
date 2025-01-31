@@ -10,6 +10,7 @@ import SwiftData
 
 @main
 struct MyAdventureApp: App {
+    @StateObject var healthManager = HealthManager()
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Activity.self,
@@ -24,12 +25,13 @@ struct MyAdventureApp: App {
     }()
 
     var body: some Scene {
+        
         WindowGroup {
             MainView()
                 .preferredColorScheme(.dark)
-                
         }
         .modelContainer(sharedModelContainer)
+        .environmentObject(healthManager)
        
         
     }

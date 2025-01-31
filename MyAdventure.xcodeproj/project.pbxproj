@@ -151,6 +151,9 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MyAdventure/Info.plist;
+				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Your health data is used to display all activities.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Your permission is needed in order to display all activities.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Your permission is needed in order to save manual activities.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -182,6 +185,9 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MyAdventure/Info.plist;
+				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Your health data is used to display all activities.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Your permission is needed in order to display all activities.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Your permission is needed in order to save manual activities.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
