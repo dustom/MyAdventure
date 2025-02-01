@@ -43,8 +43,6 @@ struct MainView: View {
         .onAppear {
             Task {
                 await healthManager.initializeHealthStore()
-                healthManager.fetchTodaySteps()
-                healthManager.fetchLastWeekWorkouts()
             }
         }
     }
@@ -53,4 +51,5 @@ struct MainView: View {
 
 #Preview {
     MainView()
+        .environmentObject(HealthManager())
 }

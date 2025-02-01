@@ -15,7 +15,6 @@ class HealthManager: ObservableObject {
     
     //TODO: try to set up anchor to fetch only new activities and not duplicates
     
-    @Published var fetchedActivities: [Activity] = []
     
     func initializeHealthStore() async {
         if HKHealthStore.isHealthDataAvailable() {
@@ -23,9 +22,6 @@ class HealthManager: ObservableObject {
             let allTypes: Set = [
                 HKQuantityType.workoutType(),
                 HKQuantityType(.activeEnergyBurned),
-                HKQuantityType(.distanceCycling),
-                HKQuantityType(.distanceWalkingRunning),
-                HKQuantityType(.heartRate),
                 HKQuantityType(.height),
                 HKQuantityType(.bodyMass),
                 HKQuantityType(.stepCount)
@@ -41,75 +37,119 @@ class HealthManager: ObservableObject {
         }
     }
     
-    func fetchTodaySteps(){
+
+    func fetchTodaySteps() async throws -> Int {
         let healthStore = HKHealthStore()
         let steps = HKQuantityType(.stepCount)
         let predicate = HKQuery.predicateForSamples(withStart: .startOfDay, end: Date())
-        let query = HKStatisticsQuery(quantityType: steps, quantitySamplePredicate: predicate) {_, result, error in
-            guard let result = result?.sumQuantity(), error == nil else {
-                print("Failed to fetch steps: \(error?.localizedDescription ?? "No error description.")")
-                return
+        return try await withCheckedThrowingContinuation { continuation in
+            let query = HKStatisticsQuery(quantityType: steps, quantitySamplePredicate: predicate) { _, result, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                guard let result = result?.sumQuantity() else {
+                    continuation.resume(throwing: NSError(domain: "HealthKit", code: -1, userInfo: [NSLocalizedDescriptionKey: "No step data available."]))
+                    return
+                }
+                
+                // 7. Return the step count
+                let stepsCount = result.doubleValue(for: .count())
+                continuation.resume(returning: Int(stepsCount))
             }
-            let stepsCount = result.doubleValue(for: .count())
-            print("Today's steps: \(Int(stepsCount))")
+            
+            healthStore.execute(query)
         }
-        healthStore.execute(query)
     }
     
-    func fetchLastWeekWorkouts(){
+    func fetchTodayCalories() async throws -> Int {
+        let healthStore = HKHealthStore()
+        let calories = HKQuantityType(.activeEnergyBurned)
+        let predicate = HKQuery.predicateForSamples(withStart: .startOfDay, end: Date())
+        return try await withCheckedThrowingContinuation { continuation in
+            let query = HKStatisticsQuery(quantityType: calories, quantitySamplePredicate: predicate) { _, result, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                guard let result = result?.sumQuantity() else {
+                    continuation.resume(throwing: NSError(domain: "HealthKit", code: -1, userInfo: [NSLocalizedDescriptionKey: "No step data available."]))
+                    return
+                }
+                
+                let calories = result.doubleValue(for: .smallCalorie())
+                continuation.resume(returning: Int(calories/1000))
+            }
+            
+            healthStore.execute(query)
+        }
+    }
+    
+    func fetchLastWeekWorkouts() async throws -> [HKWorkout] {
         let healthStore = HKHealthStore()
         let workoutType = HKWorkoutType.workoutType()
         
+        // Calculate the date one week ago
+        guard let oneWeekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) else {
+            throw NSError(domain: "DateCalculationError", code: -1, userInfo: nil)
+        }
+        
         // Define the predicate for the last week
-        let oneWeekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
         let predicate = HKQuery.predicateForSamples(
             withStart: oneWeekAgo,
             end: Date(),
             options: .strictStartDate
         )
         
-        // Query workouts
-        let query = HKSampleQuery(
-            sampleType: workoutType,
-            predicate: predicate,
-            limit: HKObjectQueryNoLimit,
-            sortDescriptors: [.init(key: HKSampleSortIdentifierStartDate, ascending: false)]
-        ) { _, samples, error in
-            guard let workouts = samples as? [HKWorkout], error == nil else {
-                print("Error: \(error?.localizedDescription ?? "Unknown error")")
-                return
-            }
-            
-            // Process each workout
-            for workout in workouts {
-                DispatchQueue.main.async {
-                    self.fetchedActivities.append(self.createActivity(from: workout))
+        // Execute the query
+        return try await withCheckedThrowingContinuation { continuation in
+            let query = HKSampleQuery(
+                sampleType: workoutType,
+                predicate: predicate,
+                limit: HKObjectQueryNoLimit,
+                sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)]
+            ) { _, samples, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
                 }
-                
+                let workouts = samples as? [HKWorkout] ?? []
+                continuation.resume(returning: workouts)
             }
+            healthStore.execute(query)
         }
-        
-        healthStore.execute(query)
-
     }
-
-    func createActivity(from healthWorkout: HKWorkout) -> Activity {
-        let activityType = healthWorkout.workoutActivityType.name
+    
+    func fetchTodayWorkouts() async throws -> [HKWorkout] {
+        let healthStore = HKHealthStore()
+        let workoutType = HKWorkoutType.workoutType()
         
-        // 2. Duration (in seconds)
-        let duration = Int(healthWorkout.duration/60)
+        // Define the predicate for the last week
+        let predicate = HKQuery.predicateForSamples(
+            withStart: .startOfDay,
+            end: Date(),
+            options: .strictStartDate
+        )
         
-        // 3. Distance (if available)
-        let distanceInMeters = healthWorkout.totalDistance?.doubleValue(for: .meter()) ?? 0.0
-        let distanceInKilometers = distanceInMeters/1000
-        
-        let date = healthWorkout.startDate
-        
-        //TODO: could calculate exertion based on HR
-        
-        let activity = Activity(name: activityType, activityType: activityType, activityDescription: "", duration: duration, distance: distanceInKilometers, exertion: 0, date: date)
-        return activity
-
+        // Execute the query
+        return try await withCheckedThrowingContinuation { continuation in
+            let query = HKSampleQuery(
+                sampleType: workoutType,
+                predicate: predicate,
+                limit: HKObjectQueryNoLimit,
+                sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)]
+            ) { _, samples, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                let workouts = samples as? [HKWorkout] ?? []
+                continuation.resume(returning: workouts)
+            }
+            healthStore.execute(query)
+        }
     }
 
 }

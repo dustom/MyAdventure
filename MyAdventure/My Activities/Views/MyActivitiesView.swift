@@ -27,6 +27,8 @@ struct MyActivitiesView: View {
     //    ]
     
     
+    //TODO: Merging to save to SwiftData wont be necesary once the activities are stored in HealthData
+    
     @State private var isNewActivityPresented = false
     @State private var searchText: String = ""
     @State private var filteringOptions: FilterOptions = .dateDescending
@@ -73,10 +75,9 @@ struct MyActivitiesView: View {
             .preferredColorScheme(.dark)
             .navigationTitle("My Activities")
         }
-        .onAppear {
-                loadActivities()
-            print(healthManager.fetchedActivities)
-        }
+//        .onAppear {
+//                loadActivities()
+//        }
         
         
         .fullScreenCover(isPresented: $isNewActivityPresented) {
@@ -130,13 +131,13 @@ struct MyActivitiesView: View {
         }
     }
     
-    private func loadActivities() {
- 
-        let allActivities = healthManager.fetchedActivities
-        for activity in allActivities {
-            modelContext.insert(activity)
-        }
-    }
+//    private func loadActivities() {
+// 
+//        var allActivities = healthManager.fetchedActivities
+//        for activity in allActivities {
+//            modelContext.insert(activity)
+//        }
+//    }
     
 }
 

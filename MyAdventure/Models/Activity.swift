@@ -9,7 +9,8 @@ import Foundation
 import SwiftData
 
 @Model
-final class Activity {
+final class Activity: Identifiable {
+    var id: UUID = UUID()
     var name: String
     var activityType: String
     var activityDescription: String
