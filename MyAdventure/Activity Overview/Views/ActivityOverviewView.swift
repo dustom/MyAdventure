@@ -91,12 +91,10 @@ struct ActivityOverviewView: View {
                                 .padding(.bottom, 5)
                                 
                             }
-                            .sheet(isPresented: $isActivityDetailPresented) {
-                                if let activity = activityToPresent {
-                                    ActivityDetailView(activity: activity)
-                                        .presentationDetents([.medium])
-                                }
-                            }
+                            .sheet(item: $activityToPresent, content: { activity in
+                                ActivityDetailView(activity: activity)
+                                    .presentationDetents([.medium])
+                            })
                         }
                     }
                 }
