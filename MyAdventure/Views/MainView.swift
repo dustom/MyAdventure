@@ -42,7 +42,11 @@ struct MainView: View {
         }
         .onAppear {
             Task {
-                await healthManager.initializeHealthStore()
+                do {
+                    try await healthManager.initializeHealthStore()
+                } catch {
+                    print("Failed to initialize HealthKit: \(error.localizedDescription)")
+                }
             }
         }
     }

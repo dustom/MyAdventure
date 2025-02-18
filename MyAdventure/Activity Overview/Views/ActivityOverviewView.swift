@@ -9,13 +9,17 @@ import SwiftUI
 import SwiftData
 import HealthKit
 
+//TODO: YOU CAN WORK WITH THE HKWORKOUT ALL THE TIME AND CHANGE IT TO THE ACTIVITY ONLY IN THE VIEW - THIS WAY YOU ARE ALWAYS MANIPULATING THE REAL HKWORKOUT AND THE ACTIVITY IS THERE JUST TO BE SHOWN THERES ALSO A QUESTION IF I REALLY NEED THE ACTIVITY DATA TYPE ALLTOGETHER AND NOT JUST USE THE HKWORKOUT AND DISPLAY IT THE WAY I WANT WITHOUT TRANSFERING IT TO THE ACTIVITY
+
+//TODO: CHECK WHETHER HKACTIVITY DOESNT HAVE SOME KIND OF AN ID TO BE IDENTIFIED BY, THIS WAY YOU COULD EASILY STORE IT IN THE ACTIVITY DATA TYPE AND DELETE IT/EDIT IT AS NEEDED
+
 
 struct ActivityOverviewView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject var manager: HealthManager
+    @State private var isLoadingTodayData: Bool = false
     @State var activityToPresent: Activity?
-    @State private var isActivityDetailPresented = false
-    @State private var lastWeekActivities: [Activity] = []
-    @State private var vm = ActivityOverviewViewmodel()
+    @StateObject private var vm = ActivityOverviewViewmodel()
     @State private var todaySteps: Int = 0
     @State private var todayStepGoal: Int = 10000
     @State private var todayCalories: Int = 0
@@ -25,79 +29,17 @@ struct ActivityOverviewView: View {
     @State private var todayDistance: Double = 0
     @State private var todayDistaneGoal: Double = 5
     
-    
     var body: some View {
-        ScrollView{
-                VStack{
-                    HStack{
-                        Text("Today's Overview")
-                            .font(.title.bold())
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding([.top, .horizontal])
-                    }
-                    
-                    VStack{
-                        HStack{
-                            
-                            CircleViewStyle(color: .blue, icon: "shoeprints.fill", goal: todayStepGoal, progress: todaySteps, unit: "steps")
-                            CircleViewStyle(color: .green, icon: "figure.run", goal: todayActiveMinutesGoal, progress: todayActiveMinutes, unit: "min")
-                        }
-                        HStack {
-                            CircleViewStyle(color: .orange, icon: "flame.fill", goal: todayCaloriesGoal, progress: todayCalories, unit: "kcal")
-                            CircleViewStyle(color: .yellow, icon: "questionmark", goal: 0, progress: 0, unit: "")
-                        }
-
-                    }
-                    .padding()
-         
-                }
-                VStack{
-                    Text("Recent Activities")
-                        .font(.title2.bold())
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal)
-                    
-                    VStack {
-                        if lastWeekActivities.isEmpty {
-                   
-                            ContentUnavailableView(
-                                "No Recent Activities",
-                                systemImage: "figure.walk",
-                                description: Text("Start your first adventure!")
-                            )
-                            .padding()
-            
-                            
-                        } else {
-                            VStack {
-                                ForEach(lastWeekActivities) { activity in
-                                    HStack{
-                                        ActivityNavigationLinkView(activity: activity)
-                                            .padding(.vertical, 8)
-                                            .padding(.horizontal)
-                                        Spacer()
-                                        Image(systemName: "chevron.right")
-                                            .padding(.horizontal)
-                                    }
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        activityToPresent = activity
-                                        isActivityDetailPresented = true
-                                    }
-                                }
-                                .background(.thinMaterial)
-                                .cornerRadius(12)
-                                .padding(.horizontal)
-                                .padding(.bottom, 5)
-                                
-                            }
-                            .sheet(item: $activityToPresent, content: { activity in
-                                ActivityDetailView(activity: activity)
-                                    .presentationDetents([.medium])
-                            })
-                        }
-                    }
-                }
+        ScrollView {
+            switch vm.state {
+            case .idle, .loading:
+                ProgressView()
+            case .loaded:
+                contentView
+            case .error:
+                //an empty view is here bcs the error is handled in the viewmodel
+                EmptyView()
+            }
         }
         .refreshable {
             reloadData()
@@ -105,18 +47,99 @@ struct ActivityOverviewView: View {
         .onAppear {
             reloadData()
         }
+        .onChange(of: scenePhase) {
+            if scenePhase == .active {
+                reloadData()
+            }
+        }
+    }
+    
+    private var contentView: some View {
+        VStack {
+            HStack {
+                Text("Today's Overview")
+                    .font(.title.bold())
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding([.top, .horizontal])
+            }
+            
+            if isLoadingTodayData {
+                ProgressView()
+                    .padding()
+            } else {
+                VStack {
+                    HStack {
+                        CircleViewStyle(color: .blue, icon: "shoeprints.fill", goal: todayStepGoal, progress: todaySteps, unit: "steps")
+                        CircleViewStyle(color: .green, icon: "figure.run", goal: todayActiveMinutesGoal, progress: todayActiveMinutes, unit: "min")
+                    }
+                    HStack {
+                        CircleViewStyle(color: .orange, icon: "flame.fill", goal: todayCaloriesGoal, progress: todayCalories, unit: "kcal")
+                        CircleViewStyle(color: .yellow, icon: "questionmark", goal: 0, progress: 0, unit: "")
+                    }
+                }
+                .padding()
+            }
+            
+            VStack {
+                Text("Recent Activities")
+                    .font(.title2.bold())
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                
+                if vm.lastWeekActivities.isEmpty {
+                    ContentUnavailableView(
+                        "No Recent Activities",
+                        systemImage: "figure.walk",
+                        description: Text("Start your first adventure!")
+                    )
+                    .padding()
+                } else {
+                    VStack {
+                        ForEach(vm.lastWeekActivities) { activity in
+                            HStack {
+                                ActivityNavigationLinkView(activity: activity)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .padding(.horizontal)
+                            }
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                activityToPresent = activity
+                            }
+                        }
+                        .background(.thinMaterial)
+                        .cornerRadius(12)
+                        .padding(.horizontal)
+                        .padding(.bottom, 5)
+                    }
+                    .sheet(item: $activityToPresent) { activity in
+                        ActivityDetailView(activity: activity)
+                            .presentationDetents([.medium])
+                    }
+                }
+            }
+        }
     }
     
     private func reloadData() {
         Task {
+            isLoadingTodayData = true
             await vm.loadActivities()
-            lastWeekActivities = vm.lastWeekActivities
-            todaySteps = try await manager.fetchTodaySteps()
-            todayCalories = try await manager.fetchTodayCalories()
             todayActiveMinutes = vm.calculateActiveMinutes()
+            
+            do {
+                todaySteps = try await manager.fetchTodaySteps()
+                todayCalories = try await manager.fetchTodayCalories()
+            } catch {
+                print("Authorization or fetch error: \(error.localizedDescription)")
+           
+            }
+               
+            isLoadingTodayData = false
         }
     }
-
     
     struct CircleViewStyle: View {
         let color: Color

@@ -7,88 +7,85 @@
 
 import SwiftUI
 import SwiftData
+import HealthKit
 
 struct MyActivitiesView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var healthManager: HealthManager
-    @Query private var activities: [Activity]
-    
-    //    private var activities: [Activity] = [
-    //        Activity(name: "Morning Run", activityType: "Running", activityDescription: "A short morning jog", duration: 30, distance: 5.0, exertion: 6, date: Date()),
-    //        Activity(name: "Afternoon Cycling", activityType: "Cycling", activityDescription: "Cycling through the park", duration: 45, distance: 15.0, exertion: 7, date: Date().addingTimeInterval(-86400)),
-    //        Activity(name: "Evening Swim", activityType: "Swimming", activityDescription: "A relaxing swim in the pool", duration: 60, distance: 1.0, exertion: 5, date: Date().addingTimeInterval(-172800)),
-    //        Activity(name: "Mountain Hike", activityType: "Hiking", activityDescription: "Climbing a steep mountain trail", duration: 120, distance: 8.0, exertion: 9, date: Date().addingTimeInterval(-259200)),
-    //        Activity(name: "Yoga Session", activityType: "Yoga", activityDescription: "A calming yoga session", duration: 45, distance: 0.0, exertion: 3, date: Date().addingTimeInterval(-345600)),
-    //        Activity(name: "Long Walk", activityType: "Walking", activityDescription: "A long walk in the park", duration: 90, distance: 6.5, exertion: 4, date: Date().addingTimeInterval(-432000)),
-    //        Activity(name: "Strength Training", activityType: "Strength", activityDescription: "Weight lifting at the gym", duration: 60, distance: 0.0, exertion: 8, date: Date().addingTimeInterval(-518400)),
-    //        Activity(name: "Cycling Tour", activityType: "Cycling", activityDescription: "A long cycling tour around the city", duration: 150, distance: 40.0, exertion: 8, date: Date().addingTimeInterval(-604800)),
-    //        Activity(name: "Jogging at the Beach", activityType: "Running", activityDescription: "Jogging along the beach at sunset", duration: 40, distance: 7.0, exertion: 6, date: Date().addingTimeInterval(-691200)),
-    //        Activity(name: "Rock Climbing", activityType: "Climbing", activityDescription: "Climbing rocks in the mountains", duration: 90, distance: 0.0, exertion: 10, date: Date().addingTimeInterval(-777600))
-    //    ]
-    
-    
-    //TODO: Merging to save to SwiftData wont be necesary once the activities are stored in HealthData
-    
+    @StateObject private var vm = ActivityViewModel()
+//    @Query private var activities: [Activity]
+    @State private var activities: [Activity] = []
     @State private var isNewActivityPresented = false
     @State private var searchText: String = ""
     @State private var filteringOptions: FilterOptions = .dateDescending
     @State private var isFilterOptionsPresented = false
     @State private var selectedActivities: Set<ActivityType> = Set(ActivityType.allCases)
     
+    
+    //TODO: decide whether you want to sync activities from my APP to healthkit or to just store it in apps memory - bcs when you choose to sync it, you lose the description and name capability... is it worth it? this app should basically replace Apple Health so it would be probably better to have two pools of data #1 App #2 Health
+
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(searchedActivities) { item in
-                    NavigationLink {
-                        ActivityDetailView(activity: item)
-                    } label: {
-                        ActivityNavigationLinkView(activity: item)
+            Group {
+                switch vm.state {
+                case .error:
+                    Text("Error loading activities, pull down to refresh.")
+                case .idle, .loading:
+                    ProgressView()
+                case .loaded:
+                    List {
+                        ForEach(searchedActivities) { item in
+                            NavigationLink {
+                                ActivityDetailView(activity: item)
+                            } label: {
+                                ActivityNavigationLinkView(activity: item)
+                            }
+                        }
+                        .onDelete(perform: deleteItems)
+                    }
+                    
+                    .searchable(text: $searchText)
+                    .autocorrectionDisabled()
+                    .overlay {
+                        if activities.isEmpty {
+                            ContentUnavailableView("No Activities", systemImage: "square.3.layers.3d.slash", description: Text("Create an activity by tapping the plus button."))
+                        } else if searchedActivities.isEmpty && !searchText.isEmpty {
+                            ContentUnavailableView.search(text: searchText)
+                        } else if filteredActivities.isEmpty {
+                            ContentUnavailableView("No Activities Found", systemImage: "square.3.layers.3d.slash", description: Text(selectedActivities == [] ? "Select at least one activity type filter." : "Try a different filter or create a new activity of the following type: \(selectedActivities.map(\.rawValue).joined(separator: ", "))."))
+                        }
+                    }
+                    .refreshable{
+                        loadActivities()
                     }
                 }
-                .onDelete(perform: deleteItems)
             }
-            .searchable(text: $searchText)
-            .autocorrectionDisabled()
-            .overlay{
-                if activities.isEmpty {
-                    ContentUnavailableView("No Activities", systemImage: "square.3.layers.3d.slash", description: Text("Create an activity by tapping the plus button."))
-                } else if searchedActivities.isEmpty && !searchText.isEmpty{
-                    ContentUnavailableView.search(text: searchText)
-                } else if filteredActivities.isEmpty {
-                    ContentUnavailableView("No Activities Found", systemImage: "square.3.layers.3d.slash", description: Text(selectedActivities == [] ? "Select at least one activity type filter." : "Try a different filter or create a new activity of the following type: \(selectedActivities.map(\.rawValue).joined(separator: ", "))."))
-                }
-            }
-            
+            .navigationTitle("My Activities")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Sort and Filter", systemImage: "line.3.horizontal.decrease") {
-                        isFilterOptionsPresented =  true
+                        isFilterOptionsPresented = true
                     }
-                    
                 }
-                ToolbarItem(placement: .navigationBarLeading){
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button("New Activity", systemImage: "plus") {
-                        isNewActivityPresented =  true
+                        isNewActivityPresented = true
                     }
                 }
             }
-            .preferredColorScheme(.dark)
-            .navigationTitle("My Activities")
         }
-//        .onAppear {
-//                loadActivities()
-//        }
-        
-        
+        .preferredColorScheme(.dark)
+        .onAppear {
+            loadActivities()
+        }
         .fullScreenCover(isPresented: $isNewActivityPresented) {
             NewActivityView()
         }
-        
         .sheet(isPresented: $isFilterOptionsPresented) {
             FilterOptionsView(filteringOptions: $filteringOptions, selectedActivities: $selectedActivities)
         }
-        
     }
+
     
     
     var sortedActivities: [Activity] {
@@ -124,20 +121,31 @@ struct MyActivitiesView: View {
     }
     
     private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(activities[index])
+            withAnimation {
+                for index in offsets {
+                    modelContext.delete(activities[index])
+                }
             }
         }
-    }
     
-//    private func loadActivities() {
-// 
-//        var allActivities = healthManager.fetchedActivities
-//        for activity in allActivities {
-//            modelContext.insert(activity)
-//        }
-//    }
+    //TODO: rework this to serve as a saving mechanism for swiftdata - better yet move it to the activity creation part
+    //private func loadActivities() {
+    //
+    //        var allActivities = healthManager.fetchedActivities
+    //        for activity in allActivities {
+    //            modelContext.insert(activity)
+    //        }
+    //    }
+    
+    
+    
+    private func loadActivities() {
+        Task {
+            await vm.loadActivities()
+            activities = vm.allActivites
+        }
+        
+    }
     
 }
 

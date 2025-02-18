@@ -10,21 +10,21 @@ import HealthKit
 
 class ActivityOverviewViewmodel: ObservableObject {
     @Published var lastWeekActivities: [Activity] = []
+    @Published var state: DataState = .idle
     
     private var manager = HealthManager()
     
-    
+    @MainActor
     func loadActivities() async {
+        state = .loading // Set state to loading
         do {
             let workouts = try await manager.fetchLastWeekWorkouts()
-            await MainActor.run {
-                lastWeekActivities = []
-                for workout in workouts  {
-                    lastWeekActivities.append(createActivity(from: workout))
-                }
-            }
+            lastWeekActivities = workouts.map { createActivity(from: $0) }
+            state = .loaded // Set state to loaded
         } catch {
-            print("An error has occured while loading activities.")
+            state = .error(error) // Set state to error
+            print("An error has occurred while loading activities: \(error.localizedDescription)")
+            manager.handleHealthKitError(error)
         }
     }
     
@@ -53,19 +53,27 @@ class ActivityOverviewViewmodel: ObservableObject {
         let activityType = healthWorkout.workoutActivityType.name
         
         // 2. Duration (in seconds)
-        let duration = Int(healthWorkout.duration/60)
+        let duration = Int(healthWorkout.duration / 60)
         
         // 3. Distance (if available)
         let distanceInMeters = healthWorkout.totalDistance?.doubleValue(for: .meter()) ?? 0.0
-        let distanceInKilometers = distanceInMeters/1000
+        let distanceInKilometers = distanceInMeters / 1000
         
         let date = healthWorkout.startDate
         
         //TODO: could calculate exertion based on HR
         
-        let activity = Activity(name: activityType, activityType: activityType, activityDescription: "", duration: duration, distance: distanceInKilometers, exertion: 0, date: date)
+        let activity = Activity(
+            name: activityType,
+            activityType: activityType,
+            activityDescription: "",
+            duration: duration,
+            distance: distanceInKilometers,
+            exertion: 0,
+            date: date
+        )
         return activity
-        
     }
+    
     
 }
