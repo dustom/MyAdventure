@@ -45,6 +45,7 @@ struct MainView: View {
                 do {
                     try await healthManager.initializeHealthStore()
                 } catch {
+                    healthManager.handleHealthKitError(error)
                     print("Failed to initialize HealthKit: \(error.localizedDescription)")
                 }
             }

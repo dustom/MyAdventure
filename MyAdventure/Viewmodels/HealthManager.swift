@@ -13,8 +13,6 @@ class HealthManager: ObservableObject {
     
     //TODO: try to set up anchor to fetch only new activities and not duplicates
     
-    
-    
     func handleHealthKitError(_ error: Error) {
         if let healthKitError = error as? HKError {
             switch healthKitError.code {
@@ -40,11 +38,7 @@ class HealthManager: ObservableObject {
                 )
             default:
                 // Handle other HealthKit errors
-                showAlert(
-                    title: "HealthKit Error",
-                    message: "Please enable HealthKit access in Settings to use this feature.",
-                    openSettings: true
-                )
+                print("An unexpected HealthKit error occurred: \(error.localizedDescription)")
             }
         } else {
             // Handle non-HealthKit errors
@@ -54,7 +48,7 @@ class HealthManager: ObservableObject {
             )
         }
     }
-
+    
     // Helper function to show an alert
     func showAlert(title: String, message: String, openSettings: Bool = false) {
         DispatchQueue.main.async {
@@ -76,7 +70,7 @@ class HealthManager: ObservableObject {
             }
         }
     }
-
+    
     func initializeHealthStore() async throws {
         guard HKHealthStore.isHealthDataAvailable() else {
             throw NSError(domain: "HealthKit", code: -1, userInfo: [NSLocalizedDescriptionKey: "Health data is not available on this device."])
@@ -98,30 +92,39 @@ class HealthManager: ObservableObject {
         }
     }
     
-
+    
     func fetchTodaySteps() async throws -> Int {
         let healthStore = HKHealthStore()
         let steps = HKQuantityType(.stepCount)
         let predicate = HKQuery.predicateForSamples(withStart: .startOfDay, end: Date())
         
-        return try await withCheckedThrowingContinuation { continuation in
-            let query = HKStatisticsQuery(quantityType: steps, quantitySamplePredicate: predicate) { _, result, error in
-                if let error = error {
-                    continuation.resume(throwing: NSError(domain: "HealthKit", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch step count: \(error.localizedDescription)"]))
-                    self.handleHealthKitError(error)
-                    return
-                }
-                
-                guard let result = result?.sumQuantity() else {
-                    continuation.resume(throwing: NSError(domain: "HealthKit", code: -1, userInfo: [NSLocalizedDescriptionKey: "No step data available for today."]))
-                    return
-                }
-                
-                let stepsCount = result.doubleValue(for: .count())
-                continuation.resume(returning: Int(stepsCount))
-            }
+        
+        let status = healthStore.authorizationStatus(for: steps)
+        
+        if status == .sharingAuthorized {
             
-            healthStore.execute(query)
+            return try await withCheckedThrowingContinuation { continuation in
+                let query = HKStatisticsQuery(quantityType: steps, quantitySamplePredicate: predicate) { _, result, error in
+                    if let error = error {
+                        continuation.resume(throwing: NSError(domain: "HealthKit", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch step count: \(error.localizedDescription)"]))
+                        self.handleHealthKitError(error)
+                        return
+                    }
+                    
+                    guard let result = result?.sumQuantity() else {
+                        continuation.resume(throwing: NSError(domain: "HealthKit", code: -1, userInfo: [NSLocalizedDescriptionKey: "No step data available for today."]))
+                        return
+                    }
+                    
+                    let stepsCount = result.doubleValue(for: .count())
+                    continuation.resume(returning: Int(stepsCount))
+                }
+                
+                healthStore.execute(query)
+            }
+        } else {
+            showAlert(title: "No Authorization.", message: "You need to grant permission to access your step count.", openSettings: true)
+            return 0
         }
     }
     
@@ -129,24 +132,33 @@ class HealthManager: ObservableObject {
         let healthStore = HKHealthStore()
         let calories = HKQuantityType(.activeEnergyBurned)
         let predicate = HKQuery.predicateForSamples(withStart: .startOfDay, end: Date())
-        return try await withCheckedThrowingContinuation { continuation in
-            let query = HKStatisticsQuery(quantityType: calories, quantitySamplePredicate: predicate) { _, result, error in
-                if let error = error {
-                    continuation.resume(throwing: NSError(domain: "HealthKit", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch calories count: \(error.localizedDescription)"]))
-                    self.handleHealthKitError(error)
-                    return
-                }
-                
-                guard let result = result?.sumQuantity() else {
-                    continuation.resume(throwing: NSError(domain: "HealthKit", code: -1, userInfo: [NSLocalizedDescriptionKey: "No step data available."]))
-                    return
-                }
-                
-                let calories = result.doubleValue(for: .smallCalorie())
-                continuation.resume(returning: Int(calories/1000))
-            }
+        
+        let status = healthStore.authorizationStatus(for: calories)
+        
+        if status == .sharingAuthorized {
             
-            healthStore.execute(query)
+            return try await withCheckedThrowingContinuation { continuation in
+                let query = HKStatisticsQuery(quantityType: calories, quantitySamplePredicate: predicate) { _, result, error in
+                    if let error = error {
+                        continuation.resume(throwing: NSError(domain: "HealthKit", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch calories count: \(error.localizedDescription)"]))
+                        self.handleHealthKitError(error)
+                        return
+                    }
+                    
+                    guard let result = result?.sumQuantity() else {
+                        continuation.resume(throwing: NSError(domain: "HealthKit", code: -1, userInfo: [NSLocalizedDescriptionKey: "No step data available."]))
+                        return
+                    }
+                    
+                    let calories = result.doubleValue(for: .smallCalorie())
+                    continuation.resume(returning: Int(calories/1000))
+                }
+                
+                healthStore.execute(query)
+            }
+        } else {
+            showAlert(title: "No Authorization.", message: "You need to grant permission to access your calories count.", openSettings: true)
+            return 0
         }
     }
     
@@ -154,34 +166,41 @@ class HealthManager: ObservableObject {
         let healthStore = HKHealthStore()
         let workoutType = HKWorkoutType.workoutType()
         
-
+        
         guard let oneWeekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) else {
             throw NSError(domain: "DateCalculationError", code: -1, userInfo: nil)
         }
         
-  
+        
         let predicate = HKQuery.predicateForSamples(
             withStart: oneWeekAgo,
             end: Date(),
             options: .strictStartDate
         )
         
-
-        return try await withCheckedThrowingContinuation { continuation in
-            let query = HKSampleQuery(
-                sampleType: workoutType,
-                predicate: predicate,
-                limit: HKObjectQueryNoLimit,
-                sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)]
-            ) { _, samples, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                    return
+        let status = healthStore.authorizationStatus(for: workoutType)
+        
+        if status == .sharingAuthorized {
+            
+            return try await withCheckedThrowingContinuation { continuation in
+                let query = HKSampleQuery(
+                    sampleType: workoutType,
+                    predicate: predicate,
+                    limit: HKObjectQueryNoLimit,
+                    sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)]
+                ) { _, samples, error in
+                    if let error = error {
+                        continuation.resume(throwing: error)
+                        return
+                    }
+                    let workouts = samples as? [HKWorkout] ?? []
+                    continuation.resume(returning: workouts)
                 }
-                let workouts = samples as? [HKWorkout] ?? []
-                continuation.resume(returning: workouts)
+                healthStore.execute(query)
             }
-            healthStore.execute(query)
+        } else {
+            showAlert(title: "No Authorization.", message: "You need to grant permission to access your workouts.", openSettings: true)
+            return []
         }
     }
     
@@ -195,24 +214,40 @@ class HealthManager: ObservableObject {
             options: .strictStartDate
         )
         
-        return try await withCheckedThrowingContinuation { continuation in
-            let query = HKSampleQuery(
-                sampleType: workoutType,
-                predicate: predicate,
-                limit: HKObjectQueryNoLimit,
-                sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)]
-            ) { _, samples, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                    return
+        let status = healthStore.authorizationStatus(for: workoutType)
+        
+        if status == .sharingAuthorized {
+            return try await withCheckedThrowingContinuation { continuation in
+                let query = HKSampleQuery(
+                    sampleType: workoutType,
+                    predicate: predicate,
+                    limit: HKObjectQueryNoLimit,
+                    sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)]
+                ) { _, samples, error in
+                    if let error = error {
+                        continuation.resume(throwing: error)
+                        return
+                    }
+                    let workouts = samples as? [HKWorkout] ?? []
+                    continuation.resume(returning: workouts)
                 }
-                let workouts = samples as? [HKWorkout] ?? []
-                continuation.resume(returning: workouts)
+                healthStore.execute(query)
             }
-            healthStore.execute(query)
+        } else {
+            showAlert(title: "No Authorization.", message: "You need to grant permission to access your workouts.", openSettings: true)
+            return []
         }
+        
     }
-
+    
+    func checkAccess(for identifier: HKQuantityTypeIdentifier) -> HKAuthorizationStatus {
+        let healthStore = HKHealthStore()
+        guard let quantityType = HKQuantityType.quantityType(forIdentifier: identifier) else {
+            return .notDetermined
+        }
+        
+        return healthStore.authorizationStatus(for: quantityType)
+    }
 }
 
 extension Date {

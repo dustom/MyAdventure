@@ -13,7 +13,6 @@ import HealthKit
 
 //TODO: CHECK WHETHER HKACTIVITY DOESNT HAVE SOME KIND OF AN ID TO BE IDENTIFIED BY, THIS WAY YOU COULD EASILY STORE IT IN THE ACTIVITY DATA TYPE AND DELETE IT/EDIT IT AS NEEDED
 
-
 struct ActivityOverviewView: View {
     @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject var manager: HealthManager
@@ -35,9 +34,13 @@ struct ActivityOverviewView: View {
             case .idle, .loading:
                 ProgressView()
             case .loaded:
-                contentView
+                if isLoadingTodayData {
+                    ProgressView()
+                } else {
+                    contentView
+                }
             case .error:
-                //an empty view is here bcs the error is handled in the viewmodel
+                //an empty view is here bcs the error is handled in the viewmode
                 EmptyView()
             }
         }
@@ -124,7 +127,8 @@ struct ActivityOverviewView: View {
     }
     
     private func reloadData() {
-        Task {
+        Task{
+            
             isLoadingTodayData = true
             await vm.loadActivities()
             todayActiveMinutes = vm.calculateActiveMinutes()
@@ -136,7 +140,6 @@ struct ActivityOverviewView: View {
                 print("Authorization or fetch error: \(error.localizedDescription)")
            
             }
-               
             isLoadingTodayData = false
         }
     }
