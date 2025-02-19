@@ -82,7 +82,8 @@ class ActivityViewModel: ObservableObject {
             duration: duration,
             distance: distanceInKilometers,
             exertion: 0,
-            date: date
+            date: date,
+            myActivity: false
         )
         return activity
     }

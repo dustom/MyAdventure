@@ -13,7 +13,8 @@ struct MyActivitiesView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var healthManager: HealthManager
     @StateObject private var vm = ActivityViewModel()
-//    @Query private var activities: [Activity]
+    @Query private var myActivities: [Activity]
+    @State private var hkActivities: [Activity] = []
     @State private var activities: [Activity] = []
     @State private var isNewActivityPresented = false
     @State private var searchText: String = ""
@@ -22,7 +23,6 @@ struct MyActivitiesView: View {
     @State private var selectedActivities: Set<ActivityType> = Set(ActivityType.allCases)
     
     
-    //TODO: decide whether you want to sync activities from my APP to healthkit or to just store it in apps memory - bcs when you choose to sync it, you lose the description and name capability... is it worth it? this app should basically replace Apple Health so it would be probably better to have two pools of data #1 App #2 Health
 
     var body: some View {
         NavigationStack {
@@ -75,6 +75,9 @@ struct MyActivitiesView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .onChange(of: myActivities) {
+            loadActivities()
+        }
         .onAppear {
             loadActivities()
         }
@@ -127,22 +130,12 @@ struct MyActivitiesView: View {
                 }
             }
         }
-    
-    //TODO: rework this to serve as a saving mechanism for swiftdata - better yet move it to the activity creation part
-    //private func loadActivities() {
-    //
-    //        var allActivities = healthManager.fetchedActivities
-    //        for activity in allActivities {
-    //            modelContext.insert(activity)
-    //        }
-    //    }
-    
-    
+
     
     private func loadActivities() {
         Task {
             await vm.loadActivities()
-            activities = vm.allActivites
+            activities = vm.allActivites + myActivities
         }
         
     }

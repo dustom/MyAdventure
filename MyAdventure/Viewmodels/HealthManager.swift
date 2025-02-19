@@ -13,6 +13,9 @@ class HealthManager: ObservableObject {
     
     //TODO: try to set up anchor to fetch only new activities and not duplicates
     
+    private var isHealthKitInitialized = false
+    private let healthStore = HKHealthStore()
+    
     func handleHealthKitError(_ error: Error) {
         if let healthKitError = error as? HKError {
             switch healthKitError.code {
@@ -76,7 +79,6 @@ class HealthManager: ObservableObject {
             throw NSError(domain: "HealthKit", code: -1, userInfo: [NSLocalizedDescriptionKey: "Health data is not available on this device."])
         }
         
-        let healthStore = HKHealthStore()
         let allTypes: Set = [
             HKQuantityType.workoutType(),
             HKQuantityType(.activeEnergyBurned),
@@ -94,7 +96,8 @@ class HealthManager: ObservableObject {
     
     
     func fetchTodaySteps() async throws -> Int {
-        let healthStore = HKHealthStore()
+
+        
         let steps = HKQuantityType(.stepCount)
         let predicate = HKQuery.predicateForSamples(withStart: .startOfDay, end: Date())
         
@@ -129,7 +132,11 @@ class HealthManager: ObservableObject {
     }
     
     func fetchTodayCalories() async throws -> Int {
-        let healthStore = HKHealthStore()
+        
+        if !isHealthKitInitialized {
+                try await initializeHealthStore()
+            }
+        
         let calories = HKQuantityType(.activeEnergyBurned)
         let predicate = HKQuery.predicateForSamples(withStart: .startOfDay, end: Date())
         
@@ -163,7 +170,11 @@ class HealthManager: ObservableObject {
     }
     
     func fetchLastWeekWorkouts() async throws -> [HKWorkout] {
-        let healthStore = HKHealthStore()
+        
+        if !isHealthKitInitialized {
+                try await initializeHealthStore()
+            }
+        
         let workoutType = HKWorkoutType.workoutType()
         
         
@@ -205,7 +216,11 @@ class HealthManager: ObservableObject {
     }
     
     func fetchAllWorkouts() async throws -> [HKWorkout] {
-        let healthStore = HKHealthStore()
+        
+        if !isHealthKitInitialized {
+                try await initializeHealthStore()
+            }
+        
         let workoutType = HKWorkoutType.workoutType()
         
         let predicate = HKQuery.predicateForSamples(
@@ -241,7 +256,7 @@ class HealthManager: ObservableObject {
     }
     
     func checkAccess(for identifier: HKQuantityTypeIdentifier) -> HKAuthorizationStatus {
-        let healthStore = HKHealthStore()
+
         guard let quantityType = HKQuantityType.quantityType(forIdentifier: identifier) else {
             return .notDetermined
         }

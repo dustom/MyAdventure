@@ -24,6 +24,9 @@ struct ActivityNavigationLinkView: View {
                     HStack {
                         Text("\(activity.name)")
                             .font(.title3)
+                        if !activity.myActivity {
+                            Image(systemName: "square.and.arrow.down.fill")
+                        }
                     }
                     
                     HStack(spacing: 12) {
@@ -56,6 +59,6 @@ struct ActivityNavigationLinkView: View {
 
 #Preview {
 
-        ActivityNavigationLinkView(activity: Activity(name: "Cycling Tour", activityType: "Cycling", activityDescription: "A long cycling tour around the city", duration: 150, distance: 40.0, exertion: 8, date: Date().addingTimeInterval(-604800)))
+    ActivityNavigationLinkView(activity: Activity(name: "Cycling Tour", activityType: "Cycling", activityDescription: "A long cycling tour around the city", duration: 150, distance: 40.0, exertion: 8, date: Date().addingTimeInterval(-604800), myActivity: true))
         
 }

@@ -206,8 +206,6 @@ struct NewActivityView: View {
                 }
             )
         }
-        
-        
     }
     
     private func scrollToItem(_ id: String, proxy: ScrollViewProxy) {
@@ -230,7 +228,8 @@ struct NewActivityView: View {
                     duration: duration,
                     distance: distance,
                     exertion: exertion,
-                    date: selectedDate
+                    date: selectedDate,
+                    myActivity: true
                 )
                 modelContext.insert(newItem)
                 dismiss()

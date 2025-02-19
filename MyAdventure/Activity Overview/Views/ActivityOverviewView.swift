@@ -15,6 +15,8 @@ import HealthKit
 
 struct ActivityOverviewView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Query private var myActivities: [Activity]
+    @State private var displayedActivities: [Activity] = []
     @EnvironmentObject var manager: HealthManager
     @State private var isLoadingTodayData: Bool = false
     @State var activityToPresent: Activity?
@@ -89,7 +91,7 @@ struct ActivityOverviewView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
                 
-                if vm.lastWeekActivities.isEmpty {
+                if displayedActivities.isEmpty {
                     ContentUnavailableView(
                         "No Recent Activities",
                         systemImage: "figure.walk",
@@ -98,7 +100,7 @@ struct ActivityOverviewView: View {
                     .padding()
                 } else {
                     VStack {
-                        ForEach(vm.lastWeekActivities) { activity in
+                        ForEach(displayedActivities) { activity in
                             HStack {
                                 ActivityNavigationLinkView(activity: activity)
                                     .padding(.vertical, 8)
@@ -128,9 +130,10 @@ struct ActivityOverviewView: View {
     
     private func reloadData() {
         Task{
-            
             isLoadingTodayData = true
             await vm.loadActivities()
+            displayedActivities = vm.lastWeekActivities + myActivities
+            displayedActivities = displayedActivities.sorted { $0.date > $1.date }
             todayActiveMinutes = vm.calculateActiveMinutes()
             
             do {
@@ -138,7 +141,7 @@ struct ActivityOverviewView: View {
                 todayCalories = try await manager.fetchTodayCalories()
             } catch {
                 print("Authorization or fetch error: \(error.localizedDescription)")
-           
+                
             }
             isLoadingTodayData = false
         }
