@@ -42,10 +42,11 @@ struct ActivityOverviewView: View {
                     contentView
                 }
             case .error:
-                //an empty view is here bcs the error is handled in the viewmode
+                //an empty view is here bcs the error is handled in the viewmodel
                 EmptyView()
             }
         }
+        .scrollIndicators(.hidden)
         .refreshable {
             reloadData()
         }

@@ -8,28 +8,31 @@
 import SwiftUI
 
 struct NewActivityView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Environment(\.dismiss) var dismiss
-    @State private var name: String = ""
-    @State private var activityType: ActivityType = .running
-    @State private var activityDescription: String = ""
-    @State private var isDurationSelectionPresented = false
-    @State private var isDistanceSelectionPresented = false
-    @State private var isActivityTypeSelectionPresented = false
-    @State private var isExertionSelectionPresented = false
-    @State private var isDateSelectionPresented = false
-    @State private var selectedItemID: String? = nil // Track the selected item
+    
+    @Environment(\.modelContext)  var modelContext
+    @Environment(\.dismiss)  var dismiss
+    @State var name: String = ""
+    @State var activityType: ActivityType = .running
+    @State var activityDescription: String = ""
+    @State var isDurationSelectionPresented = false
+    @State var isDistanceSelectionPresented = false
+    @State var isActivityTypeSelectionPresented = false
+    @State var isExertionSelectionPresented = false
+    @State var isDateSelectionPresented = false
+    @State var selectedItemID: String? = nil // Track the selected item
     @State var distanceKm: Int = 0
     @State var distanceM: Int = 0
     @State var durationHr: Int = 0
     @State var durationMin: Int = 0
     @State var exertion: Int = 1
     @State var selectedDate = Date()
-    @State private var isPopupPresented = false
-    @FocusState private var isTyping
-    @State private var isCancelAlertPresented = false
-    @State private var isEmptyNameAlertPresented = false
-    private var wasEmptyNameAlertPresented = false
+    @State var isPopupPresented = false
+    @FocusState  var isTyping
+    @State var isCancelAlertPresented = false
+    @State var isEmptyNameAlertPresented = false
+    var wasEmptyNameAlertPresented = false
+    var editActivity: Activity?
+
     
     var body: some View {
         NavigationStack {
@@ -167,7 +170,7 @@ struct NewActivityView: View {
                 .padding(.horizontal)
                 
             }
-            .navigationTitle("New Activity")
+            .navigationTitle(editActivity?.name ?? "New Activity")
             .preferredColorScheme(.dark)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -193,7 +196,26 @@ struct NewActivityView: View {
                 }
             }
         }
-        
+        .onAppear(){
+            if let activity = editActivity {
+                
+                // Populate the state variables with the values from editActivity
+                name = activity.name
+                activityType = ActivityType(rawValue: activity.activityType) ?? .running
+                activityDescription = activity.activityDescription
+                
+                // Calculate duration in hours and minutes
+                durationHr = activity.duration / 60
+                durationMin = activity.duration % 60
+                
+                // Calculate distance in kilometers and meters
+                distanceKm = Int(activity.distance)
+                distanceM = Int((activity.distance - Double(distanceKm)) * 10)
+                
+                exertion = activity.exertion
+                selectedDate = activity.date
+            }
+        }
         .alert(isPresented: $isCancelAlertPresented) {
             Alert(
                 title: Text("Are you sure?"),
@@ -215,24 +237,45 @@ struct NewActivityView: View {
     }
     
     private func addItem() {
-        if name == "" {
+        if name.isEmpty {
             isEmptyNameAlertPresented = true
         } else {
             withAnimation {
                 let duration = Int(durationHr) * 60 + Int(durationMin)
                 let distance = Double(distanceKm) + Double(distanceM) / 10
-                let newItem = Activity(
-                    name: name,
-                    activityType: activityType.rawValue,
-                    activityDescription: activityDescription,
-                    duration: duration,
-                    distance: distance,
-                    exertion: exertion,
-                    date: selectedDate,
-                    myActivity: true
-                )
-                modelContext.insert(newItem)
-                dismiss()
+
+                if let activity = editActivity {
+                    // Update the existing activity
+                    activity.name = name
+                    activity.activityType = activityType.rawValue
+                    activity.activityDescription = activityDescription
+                    activity.duration = duration
+                    activity.distance = distance
+                    activity.exertion = exertion
+                    activity.date = selectedDate
+                } else {
+                    // Create a new activity
+                    let newItem = Activity(
+                        name: name,
+                        activityType: activityType.rawValue,
+                        activityDescription: activityDescription,
+                        duration: duration,
+                        distance: distance,
+                        exertion: exertion,
+                        date: selectedDate,
+                        myActivity: true
+                    )
+                    modelContext.insert(newItem)
+                }
+
+                // Save changes to the context
+                do {
+                    try modelContext.save()
+                } catch {
+                    print("Failed to save changes: \(error)")
+                }
+
+                dismiss() // Dismiss the view after saving
             }
         }
     }
