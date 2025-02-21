@@ -23,21 +23,21 @@ struct ClickableFormItemView<Content: View>: View {
                     isSelectionPresented.toggle()
                 }
             } label: {
+                
                 HStack {
-                    VStack(alignment: .leading) {
+                    HStack() {
                         HStack {
                             Text(itemName)
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
-                            Spacer()
                         }
+                        Spacer()
                         HStack {
                             Text(itemData)
-                            Spacer()
+                                .padding(.horizontal)
                         }
-                    }
-                    Spacer()
                     
+                    }
                     Image(systemName: "chevron.right")
                         .rotationEffect(.degrees(isSelectionPresented ? 90 : 0))
                         .animation(.smooth, value: isSelectionPresented)

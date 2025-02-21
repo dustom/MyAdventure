@@ -9,10 +9,6 @@ import SwiftUI
 import SwiftData
 import HealthKit
 
-//TODO: YOU CAN WORK WITH THE HKWORKOUT ALL THE TIME AND CHANGE IT TO THE ACTIVITY ONLY IN THE VIEW - THIS WAY YOU ARE ALWAYS MANIPULATING THE REAL HKWORKOUT AND THE ACTIVITY IS THERE JUST TO BE SHOWN THERES ALSO A QUESTION IF I REALLY NEED THE ACTIVITY DATA TYPE ALLTOGETHER AND NOT JUST USE THE HKWORKOUT AND DISPLAY IT THE WAY I WANT WITHOUT TRANSFERING IT TO THE ACTIVITY
-
-//TODO: CHECK WHETHER HKACTIVITY DOESNT HAVE SOME KIND OF AN ID TO BE IDENTIFIED BY, THIS WAY YOU COULD EASILY STORE IT IN THE ACTIVITY DATA TYPE AND DELETE IT/EDIT IT AS NEEDED
-
 struct ActivityOverviewView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Query private var myActivities: [Activity]
@@ -139,11 +135,20 @@ struct ActivityOverviewView: View {
             
             do {
                 todaySteps = try await manager.fetchTodaySteps()
-                todayCalories = try await manager.fetchTodayCalories()
             } catch {
-                print("Authorization or fetch error: \(error.localizedDescription)")
+                todaySteps = 0
+                print("Authorization or fetch error with steps: \(error.localizedDescription)")
                 
             }
+            
+            do {
+                todayCalories = try await manager.fetchTodayCalories()
+            } catch {
+                todayCalories = 0
+                print("Authorization or fetch error with calories: \(error.localizedDescription)")
+                
+            }
+            
             isLoadingTodayData = false
         }
     }
