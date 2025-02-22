@@ -13,6 +13,7 @@ struct ClickableFormItemView<Content: View>: View {
     @Binding var isSelectionPresented: Bool
     var itemName: String
     var itemData: String
+    var isInEditMode: Bool?
     
     @ViewBuilder var content: () -> Content
     
@@ -20,7 +21,9 @@ struct ClickableFormItemView<Content: View>: View {
         VStack {
             Button {
                 withAnimation(.smooth) {
-                    isSelectionPresented.toggle()
+                    if isInEditMode ?? true {
+                        isSelectionPresented.toggle()
+                    }
                 }
             } label: {
                 
@@ -38,11 +41,13 @@ struct ClickableFormItemView<Content: View>: View {
                         }
                     
                     }
-                    Image(systemName: "chevron.right")
-                        .rotationEffect(.degrees(isSelectionPresented ? 90 : 0))
-                        .animation(.smooth, value: isSelectionPresented)
-                        .font(.title2)
-                        .foregroundStyle(.primary)
+                    if isInEditMode ?? true {
+                        Image(systemName: "chevron.right")
+                            .rotationEffect(.degrees(isSelectionPresented ? 90 : 0))
+                            .animation(.smooth, value: isSelectionPresented)
+                            .font(.title3)
+                            .foregroundStyle(.primary)
+                    }
                 }
                 .padding()
                 .contentShape(Rectangle())
@@ -62,6 +67,6 @@ struct ClickableFormItemView<Content: View>: View {
     @Previewable @State var showSheet = false
     @Previewable @State var closeSelection: Bool = true
     ClickableFormItemView(isSelectionPresented: $showSheet, itemName: "Item name", itemData: "Item data") {
-        ExertionSelectionView(selectedExertion: .constant(1), isSelectionPresented: $closeSelection)
+        ExertionSelectionView(exertion: 1, selectedExertion: .constant(1), isSelectionPresented: $closeSelection)
     }
 }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ActiveEnergySelectionView: View {
-    @State private var kcal: Int = 0
+    @State var kcal: Int
     @Binding var selectedKcal: Int
     @Binding var isSelectionPresented: Bool
         
@@ -52,5 +52,5 @@ struct ActiveEnergySelectionView: View {
     #Preview {
         @Previewable @State var kcal: Int = 30
         @Previewable @State var closeSelection: Bool = true
-        ActiveEnergySelectionView(selectedKcal: $kcal, isSelectionPresented: $closeSelection)
+        ActiveEnergySelectionView(kcal: kcal, selectedKcal: $kcal, isSelectionPresented: $closeSelection)
 }

@@ -62,6 +62,7 @@ struct NewActivityView: View {
                                 itemData: "\(activityType.rawValue)"
                             ) {
                                 ActivityTypeSettingsView(
+                                    activityType: activityType,
                                     selectedActivityType: $activityType,
                                     isSelectionPresented: $isActivityTypeSelectionPresented
                                 )
@@ -83,6 +84,8 @@ struct NewActivityView: View {
                                 itemData: "\(durationHr) hr \(Int(durationMin) * 10) min"
                             ) {
                                 DurationSelectionView(
+                                    hours: durationHr,
+                                    minutes: durationMin,
                                     selectedHours: $durationHr,
                                     selectedMinutes: $durationMin,
                                     isSelectionPresented: $isDurationSelectionPresented
@@ -105,6 +108,8 @@ struct NewActivityView: View {
                                 itemData: "\(distanceKm),\(distanceM) km"
                             ) {
                                 DistanceSelectionView(
+                                    kmDistance: distanceKm,
+                                    mDistance: distanceM,
                                     selectedKmDistance: $distanceKm,
                                     selectedMDistance: $distanceM,
                                     isSelectionPresented: $isDistanceSelectionPresented
@@ -128,6 +133,7 @@ struct NewActivityView: View {
                                 itemData: "\(exertion)/10"
                             ) {
                                 ExertionSelectionView(
+                                    exertion: exertion,
                                     selectedExertion: $exertion,
                                     isSelectionPresented:$isExertionSelectionPresented)
                                 .onAppear(){
@@ -151,7 +157,10 @@ struct NewActivityView: View {
                             itemName: "Date",
                             itemData: "\(selectedDate.formatted(date: .numeric, time: .omitted))"
                         ) {
-                            DateSelectionView(selectedDate: $selectedDate, isSelectionPresented: $isDateSelectionPresented)
+                            DateSelectionView(
+                                date: selectedDate,
+                                selectedDate: $selectedDate,
+                                isSelectionPresented: $isDateSelectionPresented)
                                 .onAppear(){
                                     withAnimation(.smooth){
                                         resetOtherSelections(except: "Date")

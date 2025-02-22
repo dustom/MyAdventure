@@ -8,10 +8,9 @@
 import SwiftUI
 
 struct ActivityTypeSettingsView: View {
-    @State private var activityType: ActivityType = .running
+    @State var activityType: ActivityType
     @Binding var selectedActivityType: ActivityType
     @Binding var isSelectionPresented: Bool
-    
     
     var body: some View {
         
@@ -52,5 +51,5 @@ struct ActivityTypeSettingsView: View {
 #Preview {
     @Previewable @State var activity: ActivityType = .cycling
     @Previewable @State var closeSelection: Bool = true
-    ActivityTypeSettingsView(selectedActivityType: $activity, isSelectionPresented: $closeSelection)
+    ActivityTypeSettingsView(activityType: activity, selectedActivityType: $activity, isSelectionPresented: $closeSelection)
 }

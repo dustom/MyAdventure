@@ -8,8 +8,8 @@ import Foundation
 import SwiftUI
 
 public struct DistanceSelectionView: View {
-    @State private var kmDistance: Int = 0
-    @State private var mDistance: Int = 0
+    @State var kmDistance: Int
+    @State var mDistance: Int
     @Binding var selectedKmDistance: Int
     @Binding var selectedMDistance: Int
     @Binding var isSelectionPresented: Bool
@@ -67,5 +67,5 @@ public struct DistanceSelectionView: View {
     @Previewable @State var km: Int = 5
     @Previewable @State var m: Int = 5
     @Previewable @State var closeSelection: Bool = true
-    DistanceSelectionView(selectedKmDistance: $km, selectedMDistance: $m, isSelectionPresented: $closeSelection)
+    DistanceSelectionView(kmDistance: km, mDistance: m, selectedKmDistance: $km, selectedMDistance: $m, isSelectionPresented: $closeSelection)
 }

@@ -8,8 +8,7 @@
 import SwiftUI
 
 struct DateSelectionView: View {
-    @Environment(\.dismiss) var dismiss
-    @State private var date = Date()
+    @State var date: Date
     @Binding var selectedDate: Date
     @Binding var isSelectionPresented: Bool
     
@@ -44,5 +43,5 @@ struct DateSelectionView: View {
 #Preview {
     @Previewable @State var date: Date = Date()
     @Previewable @State var closeSelection: Bool = true
-    DateSelectionView(selectedDate: $date, isSelectionPresented: $closeSelection)
+    DateSelectionView(date: date, selectedDate: $date, isSelectionPresented: $closeSelection)
 }

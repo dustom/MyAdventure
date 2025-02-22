@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct HeightWeightSelectionView: View {
-    @State private var value: Int = 0
+    @State var value: Int
     @Binding var selectedValue: Int
     @Binding var isSelectionPresented: Bool
     var isHeight = false
@@ -53,5 +53,5 @@ struct HeightWeightSelectionView: View {
     #Preview {
         @Previewable @State var value: Int = 30
         @Previewable @State var closeSelection: Bool = true
-        HeightWeightSelectionView(selectedValue: $value, isSelectionPresented: $closeSelection)
+        HeightWeightSelectionView(value: value, selectedValue: $value, isSelectionPresented: $closeSelection)
 }

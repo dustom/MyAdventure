@@ -8,8 +8,7 @@ import Foundation
 import SwiftUI
 
 public struct ExertionSelectionView: View {
-    @Environment(\.dismiss) var dismiss
-    @State private var exertion: Int = 1
+    @State var exertion: Int
     @Binding var selectedExertion: Int
     @Binding var isSelectionPresented: Bool
     
@@ -52,5 +51,5 @@ public struct ExertionSelectionView: View {
 #Preview {
     @Previewable @State var exertion: Int = 5
     @Previewable @State var closeSelection: Bool = true
-    ExertionSelectionView(selectedExertion: $exertion, isSelectionPresented: $closeSelection)
+    ExertionSelectionView(exertion: exertion, selectedExertion: $exertion, isSelectionPresented: $closeSelection)
 }

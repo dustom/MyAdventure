@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct StepsSelectionView: View {
-    @State private var steps: Int = 0
+    @State var steps: Int
     @Binding var selectedSteps: Int
     @Binding var isSelectionPresented: Bool
     
@@ -52,5 +52,5 @@ struct StepsSelectionView: View {
 #Preview {
     @Previewable @State var steps: Int = 30
     @Previewable @State var closeSelection: Bool = true
-    StepsSelectionView(selectedSteps: $steps, isSelectionPresented: $closeSelection)
+    StepsSelectionView(steps: steps, selectedSteps: $steps, isSelectionPresented: $closeSelection)
 }

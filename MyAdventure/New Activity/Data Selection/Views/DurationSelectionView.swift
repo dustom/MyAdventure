@@ -8,8 +8,8 @@ import Foundation
 import SwiftUI
 
 public struct DurationSelectionView: View {
-    @State private var hours: Int = 0
-    @State private var minutes: Int = 0
+    @State var hours: Int
+    @State var minutes: Int
     @Binding var selectedHours: Int
     @Binding var selectedMinutes: Int
     @Binding var isSelectionPresented: Bool
@@ -64,5 +64,5 @@ public struct DurationSelectionView: View {
     @Previewable @State var hr: Int = 5
     @Previewable @State var min: Int = 30
     @Previewable @State var closeSelection: Bool = true
-    DurationSelectionView(selectedHours: $hr, selectedMinutes: $min, isSelectionPresented: $closeSelection)
+    DurationSelectionView(hours: hr, minutes: min, selectedHours: $hr, selectedMinutes: $min, isSelectionPresented: $closeSelection)
 }

@@ -14,6 +14,7 @@ struct MyAdventureApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Activity.self,
+            UserProfile.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
