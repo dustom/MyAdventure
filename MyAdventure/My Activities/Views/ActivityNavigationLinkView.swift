@@ -59,6 +59,6 @@ struct ActivityNavigationLinkView: View {
 
 #Preview {
 
-    ActivityNavigationLinkView(activity: Activity(name: "Cycling Tour", activityType: "Cycling", activityDescription: "A long cycling tour around the city", duration: 150, distance: 40.0, exertion: 8, date: Date().addingTimeInterval(-604800), myActivity: true))
+    ActivityNavigationLinkView(activity: Activity(name: "Cycling Tour", activityType: "Cycling", activityDescription: "A long cycling tour around the city", duration: 150, distance: 40.0, exertion: 8, date: Date().addingTimeInterval(-604800), myActivity: true, caloriesBurned: 150))
         
 }

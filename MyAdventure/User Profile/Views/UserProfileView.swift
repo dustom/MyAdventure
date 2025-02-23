@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 struct UserProfileView: View {
     @Environment(\.modelContext)  var modelContext
@@ -16,19 +17,20 @@ struct UserProfileView: View {
     @State var isActiveTimeEditPresented = false
     @State var isEnergyBurnedEditPresented = false
     @State var isStepsEditPresented = false
-    
     @State var isInEditMode = false
     
-    @State var userName: String = "Heinrich"
+    
+    @State private var userImage: UIImage = UIImage(resource: .heinrich)
+    @State private var userPickedImage: PhotosPickerItem?
+    @State private var userImageData: Data?
+    @State var userName: String = ""
     @State var birthdate: Date = Date()
     @State var activeMinutes = 2
     @State var activeHours = 1
     @State var activeEnergy = 500
-    @State var steps = 20
+    @State var steps = 10000
     @State var height = 175
     @State var weight = 65
-   
-    //TODO: close all editable fields after hitting DONE
     
     var body: some View {
         NavigationStack{
@@ -36,30 +38,85 @@ struct UserProfileView: View {
                 ScrollView {
                     VStack {
                         ZStack {
-                            Circle()
-                                .fill(.gray)
-                                .frame(width: 200, height: 200)
-                                .opacity(0.5)
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 100))
-                            Image("heinrich")
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 200, height: 200)
-                                .clipShape(Circle())
+                            PhotosPicker(selection: $userPickedImage, matching: .images) {
+                                Image(uiImage: userImage)
+                                    .resizable()
+                                    .scaledToFill()
+                            }
+                            .disabled(!isInEditMode)
+                            
+                            VStack{
+                                Spacer()
+                                if isInEditMode {
+                                    VStack{
+                                        Text("Edit")
+                                            .padding(.vertical, 5)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .background(.thinMaterial)
+                                }
+                            }
+                            
                         }
-                        Text(userName)
-                            .font(.largeTitle)
+                        .frame(width: 150, height: 150)
+                        .clipShape(Circle())
+                        
+                        .onChange(of: userPickedImage) { _, _ in
+                            Task {
+                                if let userPickedImage,
+                                   let data = try? await userPickedImage.loadTransferable(type: Data.self) {
+                                    self.userImageData = data
+                                    if let image = UIImage(data: data) {
+                                        userImage = image
+                                    }
+                                }
+                            }
+                        }
+                        
+                        
+                        HStack {
+                            HStack{
+                                TextField("Fill in the user name", text: $userName)
+                            }
+                            .disabled(!isInEditMode)
+                            .multilineTextAlignment(.center)
+                            .font(.title)
+                            .padding()
+                            
+                            
+                            if isInEditMode {
+                                VStack{
+                                    Button("Cancel", systemImage: "xmark.circle.fill") {
+                                        userName = ""
+                                    }
+                                    .labelStyle(.iconOnly)
+                                    .font(.title2)
+                                    .foregroundStyle(.secondary.opacity(0.7))
+                                }
+                                .padding()
+                            }
+                        }
+                        .background(.thinMaterial.opacity(isInEditMode ? 1 : 0))
+                        .clipShape(RoundedRectangle(cornerRadius: 15))
+                        
                     }
                     
                     VStack {
                         HStack {
-                            Text("Info:")
+                            Text("Info")
                             Spacer()
                         }
                         
-                        ClickableFormItemView(isSelectionPresented: $isHeightEditPresented, itemName: "Height", itemData: "\(height) cm", isInEditMode: isInEditMode) {
-                            HeightWeightSelectionView(value: height, selectedValue: $height, isSelectionPresented: $isHeightEditPresented, isHeight: true)
+                        ClickableFormItemView(
+                            isSelectionPresented: $isHeightEditPresented,
+                            itemName: "Height",
+                            itemData: "\(height) cm",
+                            isInEditMode: isInEditMode) {
+                                HeightWeightSelectionView(
+                                    value: height,
+                                    selectedValue: $height,
+                                    isSelectionPresented: $isHeightEditPresented,
+                                    isHeight: true)
                                 .onAppear {
                                     withAnimation(.smooth) {
                                         resetOtherSelections(except: "Height")
@@ -68,11 +125,18 @@ struct UserProfileView: View {
                                         }
                                     }
                                 }
-                        }
-                        .id("Height")
+                            }
+                            .id("Height")
                         
-                        ClickableFormItemView(isSelectionPresented: $isWeightEditPresented, itemName: "Weight", itemData: "\(weight) kg", isInEditMode: isInEditMode) {
-                            HeightWeightSelectionView(value: weight, selectedValue: $weight, isSelectionPresented: $isWeightEditPresented)
+                        ClickableFormItemView(
+                            isSelectionPresented: $isWeightEditPresented,
+                            itemName: "Weight",
+                            itemData: "\(weight) kg",
+                            isInEditMode: isInEditMode) {
+                                HeightWeightSelectionView(
+                                    value: weight,
+                                    selectedValue: $weight,
+                                    isSelectionPresented: $isWeightEditPresented)
                                 .onAppear {
                                     withAnimation(.smooth) {
                                         resetOtherSelections(except: "Weight")
@@ -81,11 +145,18 @@ struct UserProfileView: View {
                                         }
                                     }
                                 }
-                        }
-                        .id("Weight")
+                            }
+                            .id("Weight")
                         
-                        ClickableFormItemView(isSelectionPresented: $isBirthdateEditPresented, itemName: "Date of Birth", itemData: "\(birthdate.formatted(date: .numeric, time: .omitted))", isInEditMode: isInEditMode) {
-                            DateSelectionView(date: birthdate, selectedDate: $birthdate, isSelectionPresented: $isBirthdateEditPresented)
+                        ClickableFormItemView(
+                            isSelectionPresented: $isBirthdateEditPresented,
+                            itemName: "Date of Birth",
+                            itemData: "\(birthdate.formatted(date: .numeric, time: .omitted))",
+                            isInEditMode: isInEditMode) {
+                                DateSelectionView(
+                                    date: birthdate,
+                                    selectedDate: $birthdate,
+                                    isSelectionPresented: $isBirthdateEditPresented)
                                 .onAppear {
                                     withAnimation(.smooth) {
                                         resetOtherSelections(except: "Date of Birth")
@@ -94,20 +165,27 @@ struct UserProfileView: View {
                                         }
                                     }
                                 }
-                        }
-                        .id("Date of Birth")
+                            }
+                            .id("Date of Birth")
                     }
                     
                     Spacer()
                     
                     VStack {
                         HStack {
-                            Text("Goals:")
+                            Text("Goals")
                             Spacer()
                         }
                         
-                        ClickableFormItemView(isSelectionPresented: $isStepsEditPresented, itemName: "Steps", itemData: String(steps * 500).formattedWithSpaces(), isInEditMode: isInEditMode) {
-                            StepsSelectionView(steps: steps, selectedSteps: $steps, isSelectionPresented: $isStepsEditPresented)
+                        ClickableFormItemView(
+                            isSelectionPresented: $isStepsEditPresented,
+                            itemName: "Steps",
+                            itemData: String(steps).formattedWithSpaces(),
+                            isInEditMode: isInEditMode) {
+                                StepsSelectionView(
+                                    steps: steps,
+                                    selectedSteps: $steps,
+                                    isSelectionPresented: $isStepsEditPresented)
                                 .onAppear {
                                     withAnimation(.smooth) {
                                         resetOtherSelections(except: "Steps")
@@ -116,13 +194,22 @@ struct UserProfileView: View {
                                         }
                                     }
                                 }
-                        }
-                        .id("Steps")
+                            }
+                            .id("Steps")
                         
                         let activeTime = (activeHours * 60) + activeMinutes*10
                         
-                        ClickableFormItemView(isSelectionPresented: $isActiveTimeEditPresented, itemName: "Active Time", itemData: "\(activeTime) min", isInEditMode: isInEditMode) {
-                            DurationSelectionView(hours: activeHours, minutes: activeMinutes, selectedHours: $activeHours, selectedMinutes: $activeMinutes, isSelectionPresented: $isActiveTimeEditPresented)
+                        ClickableFormItemView(
+                            isSelectionPresented: $isActiveTimeEditPresented,
+                            itemName: "Active Time",
+                            itemData: "\(activeTime) min",
+                            isInEditMode: isInEditMode) {
+                                DurationSelectionView(
+                                    hours: activeHours,
+                                    minutes: activeMinutes,
+                                    selectedHours: $activeHours,
+                                    selectedMinutes: $activeMinutes,
+                                    isSelectionPresented: $isActiveTimeEditPresented)
                                 .onAppear {
                                     withAnimation(.smooth) {
                                         resetOtherSelections(except: "Active Time")
@@ -131,11 +218,18 @@ struct UserProfileView: View {
                                         }
                                     }
                                 }
-                        }
-                        .id("Active Time")
+                            }
+                            .id("Active Time")
                         
-                        ClickableFormItemView(isSelectionPresented: $isEnergyBurnedEditPresented, itemName: "Energy Burned", itemData: String(activeEnergy * 10).formattedWithSpaces() + " kcal", isInEditMode: isInEditMode) {
-                            ActiveEnergySelectionView(kcal: activeEnergy, selectedKcal: $activeEnergy, isSelectionPresented: $isEnergyBurnedEditPresented)
+                        ClickableFormItemView(
+                            isSelectionPresented: $isEnergyBurnedEditPresented,
+                            itemName: "Energy Burned",
+                            itemData: String(activeEnergy).formattedWithSpaces() + " kcal",
+                            isInEditMode: isInEditMode) {
+                                ActiveEnergySelectionView(
+                                    kcal: activeEnergy,
+                                    selectedKcal: $activeEnergy,
+                                    isSelectionPresented: $isEnergyBurnedEditPresented)
                                 .onAppear {
                                     withAnimation(.smooth) {
                                         resetOtherSelections(except: "Energy Burned")
@@ -144,12 +238,12 @@ struct UserProfileView: View {
                                         }
                                     }
                                 }
-                        }
-                        .id("Energy Burned")
+                            }
+                            .id("Energy Burned")
                     }
                 }
                 .scrollIndicators(.hidden)
-                .padding()
+                .padding(.horizontal)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -157,11 +251,26 @@ struct UserProfileView: View {
                         withAnimation {
                             isInEditMode.toggle()
                             
+                            if !isInEditMode {
+                                isHeightEditPresented = false
+                                isWeightEditPresented = false
+                                isBirthdateEditPresented = false
+                                isActiveTimeEditPresented = false
+                                isEnergyBurnedEditPresented = false
+                                isStepsEditPresented = false
+                            }
+                            
                             let activeTime = (activeHours * 60) + activeMinutes*10
-                            let updatedUser = UserProfile(name: userName, height: height, weight: weight, birthdate: birthdate, steps: steps, calories: activeEnergy, activeMinutes: activeTime)
+                            let updatedUser = UserProfile(
+                                name: userName,
+                                height: height, weight: weight,
+                                birthdate: birthdate,
+                                steps: steps,
+                                calories: activeEnergy,
+                                activeMinutes: activeTime,
+                                imageData: userImageData)
                             
                             modelContext.insert(updatedUser)
-            
                             
                             do {
                                 try modelContext.save()
@@ -180,9 +289,10 @@ struct UserProfileView: View {
             activeMinutes = vm.userProfile.activeMinutes % 60
             activeHours = vm.userProfile.activeMinutes/60
             activeEnergy = vm.userProfile.calories
-            steps = vm.userProfile.steps/1000
+            steps = vm.userProfile.steps
             height = vm.userProfile.height
             weight = vm.userProfile.weight
+            userImage = vm.userProfile.image ?? UIImage(resource: .heinrich)
         }
         
     }
@@ -241,17 +351,3 @@ struct UserProfileView: View {
     UserProfileView()
 }
 
-extension String {
-    func formattedWithSpaces() -> String {
-        let cleanedString = self.replacingOccurrences(of: " ", with: "")
-        let reversedString = String(cleanedString.reversed())
-        var result = ""
-        for (index, character) in reversedString.enumerated() {
-            if index != 0 && index % 3 == 0 {
-                result.append(" ")
-            }
-            result.append(character)
-        }
-        return String(result.reversed())
-    }
-}

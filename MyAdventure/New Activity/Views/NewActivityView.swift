@@ -11,6 +11,7 @@ struct NewActivityView: View {
     
     @Environment(\.modelContext)  var modelContext
     @Environment(\.dismiss)  var dismiss
+    @StateObject private var vm = NewActivityViewModel()
     @State var name: String = ""
     @State var activityType: ActivityType = .running
     @State var activityDescription: String = ""
@@ -246,6 +247,9 @@ struct NewActivityView: View {
     }
     
     private func addItem() {
+        let userProfileVM = UserProfileViewModel(modelContext: modelContext)
+        let user = userProfileVM.userProfile
+        
         if name.isEmpty {
             isEmptyNameAlertPresented = true
         } else {
@@ -262,6 +266,7 @@ struct NewActivityView: View {
                     activity.distance = distance
                     activity.exertion = exertion
                     activity.date = selectedDate
+                    activity.caloriesBurned = vm.calculateCalories(activityDuration: duration, exertion: exertion, user: user)
                 } else {
                     // Create a new activity
                     let newItem = Activity(
@@ -272,7 +277,8 @@ struct NewActivityView: View {
                         distance: distance,
                         exertion: exertion,
                         date: selectedDate,
-                        myActivity: true
+                        myActivity: true,
+                        caloriesBurned: vm.calculateCalories(activityDuration: duration, exertion: exertion, user: user)
                     )
                     modelContext.insert(newItem)
                 }

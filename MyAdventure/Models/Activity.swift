@@ -19,8 +19,9 @@ final class Activity: Identifiable {
     var exertion: Int
     var date: Date
     var myActivity: Bool
+    var caloriesBurned: Int
     
-    init(name: String, activityType: String, activityDescription: String, duration: Int, distance: Double, exertion: Int, date: Date, myActivity: Bool) {
+    init(name: String, activityType: String, activityDescription: String, duration: Int, distance: Double, exertion: Int, date: Date, myActivity: Bool, caloriesBurned: Int) {
         self.name = name
         self.activityType = activityType
         self.activityDescription = activityDescription
@@ -29,6 +30,6 @@ final class Activity: Identifiable {
         self.exertion = exertion
         self.date = date
         self.myActivity = myActivity
-    
+        self.caloriesBurned = caloriesBurned
     }
 }

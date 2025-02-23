@@ -13,9 +13,9 @@ class UserProfileViewModel: ObservableObject {
     private var savedUserProfile = [UserProfile]()
     var userProfile: UserProfile {
         guard !savedUserProfile.isEmpty else {
-            return UserProfile(name: "User Name", height: 180, weight: 70, birthdate: Date(), steps: 10000, calories: 400, activeMinutes: 60)
+            return UserProfile(name: "Name", height: 180, weight: 70, birthdate: Date(), steps: 10000, calories: 400, activeMinutes: 60, imageData: nil)
         }
-        return savedUserProfile[0]
+        return savedUserProfile.last!
     }
     
     private let modelContext: ModelContext
@@ -35,3 +35,19 @@ class UserProfileViewModel: ObservableObject {
         }
     }
 }
+
+extension String {
+    func formattedWithSpaces() -> String {
+        let cleanedString = self.replacingOccurrences(of: " ", with: "")
+        let reversedString = String(cleanedString.reversed())
+        var result = ""
+        for (index, character) in reversedString.enumerated() {
+            if index != 0 && index % 3 == 0 {
+                result.append(" ")
+            }
+            result.append(character)
+        }
+        return String(result.reversed())
+    }
+}
+

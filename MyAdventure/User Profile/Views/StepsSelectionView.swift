@@ -17,9 +17,12 @@ struct StepsSelectionView: View {
         VStack {
             HStack {
                 Spacer()
+                let stepSize = 500
+                let range = stride(from: 0, through: 100_000, by: stepSize) // 0 to 100,000 in steps of 2,000
+
                 Picker("Select steps", selection: $steps) {
-                    ForEach(0...100, id: \.self) { number in
-                        Text("\(number*500)")
+                    ForEach(Array(range), id: \.self) { number in
+                        Text("\(number)")
                     }
                 }
                 .pickerStyle(.wheel)

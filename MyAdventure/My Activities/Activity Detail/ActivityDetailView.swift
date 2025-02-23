@@ -44,7 +44,12 @@ struct ActivityDetailView: View {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
                         MetricCell(value: vm.formatDuration(activity.duration), label: "Duration")
                         MetricCell(value: String(format: "%.1f km", activity.distance), label: "Distance")
-                        MetricCell(value: "\(activity.exertion)/10", label: "Exertion")
+                        if activity.exertion > 0 {
+                            MetricCell(value: "\(activity.exertion)/10", label: "Exertion")
+                        }
+                        if activity.caloriesBurned > 0 {
+                            MetricCell(value: "\(activity.caloriesBurned) kcal", label: "Calories")
+                        }
                         if vm.calculateRate(activity: activity) != "" {
                             MetricCell(value: vm.calculateRate(activity: activity), label: "Speed")
                         }
@@ -112,5 +117,5 @@ struct MetricCell: View {
 // Preview
 #Preview {
     
-    ActivityDetailView( activity: Activity(name: "Cycling Tour", activityType: "Cycling", activityDescription: "A long cycling tour around the city", duration: 150, distance: 40.0, exertion: 8, date: Date().addingTimeInterval(-604800), myActivity: true))
+    ActivityDetailView( activity: Activity(name: "Cycling Tour", activityType: "Cycling", activityDescription: "A long cycling tour around the city", duration: 150, distance: 40.0, exertion: 8, date: Date().addingTimeInterval(-604800), myActivity: true, caloriesBurned: 200))
 }

@@ -26,7 +26,7 @@ class ActivityOverviewViewmodel: ObservableObject {
             print("An error has occurred while loading activities: \(error.localizedDescription)")
             manager.handleHealthKitError(error)
         }
-    }
+    }    
     
     func calculateActiveMinutes() -> Int {
         var activeMinutes: Int = 0
@@ -71,7 +71,8 @@ class ActivityOverviewViewmodel: ObservableObject {
             distance: distanceInKilometers,
             exertion: 0,
             date: date,
-            myActivity: false
+            myActivity: false,
+            caloriesBurned: 0
         )
         return activity
     }

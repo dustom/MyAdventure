@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import UIKit
 
 @Model
 final class UserProfile: Identifiable {
@@ -18,8 +19,9 @@ final class UserProfile: Identifiable {
     var steps: Int
     var calories: Int
     var activeMinutes: Int
+    var imageData: Data?
     
-    init(name: String, height: Int, weight: Int, birthdate: Date, steps: Int, calories: Int, activeMinutes: Int) {
+    init(name: String, height: Int, weight: Int, birthdate: Date, steps: Int, calories: Int, activeMinutes: Int, imageData: Data?) {
         self.name = name
         self.height = height
         self.weight = weight
@@ -27,6 +29,12 @@ final class UserProfile: Identifiable {
         self.steps = steps
         self.calories = calories
         self.activeMinutes = activeMinutes
+        self.imageData = imageData
+    }
+    
+    var image: UIImage? {
+        guard let imageData else { return nil }
+        return UIImage(data: imageData)
     }
     
 }

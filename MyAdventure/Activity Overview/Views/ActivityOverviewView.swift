@@ -11,6 +11,7 @@ import HealthKit
 
 struct ActivityOverviewView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext)  var modelContext
     @Query private var myActivities: [Activity]
     @State private var displayedActivities: [Activity] = []
     @EnvironmentObject var manager: HealthManager
@@ -25,100 +26,151 @@ struct ActivityOverviewView: View {
     @State private var todayActiveMinutesGoal: Int = 60
     @State private var todayDistance: Double = 0
     @State private var todayDistaneGoal: Double = 5
+    @State private var isPercentageStepsShown = false
+    @State private var isPercentageActiveMinutesShown = false
+    @State private var isPercentageCaloriesShown = false
+    @State private var isPercentageQuestionMarkShown = false
+    
+    //TODO: Add data from MyActivities to the overview
     
     var body: some View {
-        ScrollView {
-            switch vm.state {
-            case .idle, .loading:
-                ProgressView()
-            case .loaded:
-                if isLoadingTodayData {
+        NavigationStack{
+            ScrollView {
+                switch vm.state {
+                case .idle, .loading:
                     ProgressView()
-                } else {
-                    contentView
+                case .loaded:
+                    if isLoadingTodayData {
+                        ProgressView()
+                    } else {
+                        contentView
+                    }
+                case .error:
+                    //an empty view is here bcs the error is handled in the viewmodel
+                    EmptyView()
                 }
-            case .error:
-                //an empty view is here bcs the error is handled in the viewmodel
-                EmptyView()
             }
-        }
-        .scrollIndicators(.hidden)
-        .refreshable {
-            reloadData()
-        }
-        .onAppear {
-            reloadData()
-        }
-        .onChange(of: scenePhase) {
-            if scenePhase == .active {
+            .scrollIndicators(.hidden)
+            .refreshable {
                 reloadData()
+            }
+            .onAppear {
+                reloadData()
+            }
+            .onChange(of: scenePhase) {
+                if scenePhase == .active {
+                    reloadData()
+                }
             }
         }
     }
     
     private var contentView: some View {
-        VStack {
-            HStack {
-                Text("Today's Overview")
-                    .font(.title.bold())
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding([.top, .horizontal])
-            }
-            
-            if isLoadingTodayData {
-                ProgressView()
-                    .padding()
-            } else {
-                VStack {
-                    HStack {
-                        CircleViewStyle(color: .blue, icon: "shoeprints.fill", goal: todayStepGoal, progress: todaySteps, unit: "steps")
-                        CircleViewStyle(color: .green, icon: "figure.run", goal: todayActiveMinutesGoal, progress: todayActiveMinutes, unit: "min")
-                    }
-                    HStack {
-                        CircleViewStyle(color: .orange, icon: "flame.fill", goal: todayCaloriesGoal, progress: todayCalories, unit: "kcal")
-                        CircleViewStyle(color: .yellow, icon: "questionmark", goal: 0, progress: 0, unit: "")
-                    }
-                }
-                .padding()
-            }
-            
+        NavigationStack{
             VStack {
-                Text("Recent Activities")
-                    .font(.title2.bold())
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
+                HStack {
+                    Text("Today's Overview")
+                        .font(.title.bold())
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding([.top, .horizontal])
+                }
                 
-                if displayedActivities.isEmpty {
-                    ContentUnavailableView(
-                        "No Recent Activities",
-                        systemImage: "figure.walk",
-                        description: Text("Start your first adventure!")
-                    )
-                    .padding()
+                if isLoadingTodayData {
+                    ProgressView()
+                        .padding()
                 } else {
                     VStack {
-                        ForEach(displayedActivities) { activity in
-                            HStack {
-                                ActivityNavigationLinkView(activity: activity)
-                                    .padding(.vertical, 8)
-                                    .padding(.horizontal)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .padding(.horizontal)
-                            }
-                            .contentShape(Rectangle())
+                        HStack {
+                            CircleViewStyle(
+                                color: .blue,
+                                icon: "shoeprints.fill",
+                                goal: todayStepGoal,
+                                progress: todaySteps,
+                                unit: "steps",
+                                isPercantageShown: isPercentageStepsShown)
                             .onTapGesture {
-                                activityToPresent = activity
+                                withAnimation{
+                                    isPercentageStepsShown.toggle()
+                                }
+                            }
+                            
+                            CircleViewStyle(
+                                color: .green,
+                                icon: "figure.run",
+                                goal: todayActiveMinutesGoal,
+                                progress: todayActiveMinutes,
+                                unit: "min",
+                                isPercantageShown: isPercentageActiveMinutesShown)
+                            .onTapGesture {
+                                withAnimation{
+                                    isPercentageActiveMinutesShown.toggle()
+                                }
                             }
                         }
-                        .background(.thinMaterial)
-                        .cornerRadius(12)
-                        .padding(.horizontal)
-                        .padding(.bottom, 5)
+                        HStack {
+                            CircleViewStyle(
+                                color: .orange,
+                                icon: "flame.fill",
+                                goal: todayCaloriesGoal,
+                                progress: todayCalories,
+                                unit: "kcal",
+                                isPercantageShown: isPercentageCaloriesShown)
+                            .onTapGesture {
+                                withAnimation{
+                                    isPercentageCaloriesShown.toggle()
+                                }
+                            }
+                            
+                            CircleViewStyle(
+                                color: .yellow,
+                                icon: "questionmark",
+                                goal: 0,
+                                progress: 0,
+                                unit: "",
+                                isPercantageShown: isPercentageQuestionMarkShown)
+                        }
                     }
-                    .sheet(item: $activityToPresent) { activity in
-                        ActivityDetailView(activity: activity)
-                            .presentationDetents([.medium])
+                    .padding()
+                }
+                
+                VStack {
+                    Text("Recent Activities")
+                        .font(.title2.bold())
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                    
+                    if displayedActivities.isEmpty {
+                        ContentUnavailableView(
+                            "No Recent Activities",
+                            systemImage: "figure.walk",
+                            description: Text("Start your first adventure!")
+                        )
+                        .padding()
+                    } else {
+                        VStack {
+                            ForEach(displayedActivities) { activity in
+                                NavigationLink{
+                                    ActivityDetailView(activity: activity)
+                                       
+                                }label: {
+                                    HStack {
+                                        ActivityNavigationLinkView(activity: activity)
+                                            .padding(.vertical, 8)
+                                            .padding(.horizontal)
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .padding(.horizontal)
+                                    }
+                                    .contentShape(Rectangle())
+                                    
+                                }
+                                .foregroundStyle(.primary)
+                                .background(.thinMaterial)
+                                .cornerRadius(12)
+                                .padding(.horizontal)
+                                .padding(.bottom, 5)
+                            }
+                        }
                     }
                 }
             }
@@ -126,6 +178,12 @@ struct ActivityOverviewView: View {
     }
     
     private func reloadData() {
+        let userProfileVM = UserProfileViewModel(modelContext: modelContext)
+        let user = userProfileVM.userProfile
+        todayStepGoal = user.steps
+        todayCaloriesGoal = user.calories
+        todayActiveMinutesGoal = user.activeMinutes
+        
         Task{
             isLoadingTodayData = true
             await vm.loadActivities()
@@ -162,6 +220,7 @@ struct ActivityOverviewView: View {
             return Double(progress) / Double(goal)
         }
         let unit: String
+        var isPercantageShown: Bool
         
         var body: some View {
             ZStack {
@@ -174,15 +233,21 @@ struct ActivityOverviewView: View {
                     .shadow(radius: 5)
                 
                 VStack{
-                    Image(systemName: ("\(icon)"))
-                        .font(.system(size: 30, weight: .bold, design: .default))
-                        .padding(.bottom, 5)
-                    Text("\(progress) / \(goal) \(unit)")
-                        .font(.system(size: 14, weight: .medium, design: .default))
-                        .padding(.horizontal)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.center)
-                        .minimumScaleFactor(0.5)
+                    if isPercantageShown {
+                        Text("\(Int(percantage * 100))%")
+                            .font(.title)
+                    }else {
+                        
+                        Image(systemName: ("\(icon)"))
+                            .font(.system(size: 30, weight: .bold, design: .default))
+                            .padding(.bottom, 5)
+                        Text("\(progress) / \(goal) \(unit)")
+                            .font(.system(size: 14, weight: .medium, design: .default))
+                            .padding(.horizontal)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.center)
+                            .minimumScaleFactor(0.5)
+                    }
                 }
             }
             .padding()

@@ -17,9 +17,12 @@ struct ActiveEnergySelectionView: View {
             VStack {
                 HStack {
                     Spacer()
-                    Picker("Select kcal", selection: $kcal) {
-                        ForEach(0...1000, id: \.self) { number in
-                            Text("\(number*10)")
+                    let kcalSize = 10
+                    let range = stride(from: 0, through: 10_000, by: kcalSize)
+
+                    Picker("Select steps", selection: $kcal) {
+                        ForEach(Array(range), id: \.self) { number in
+                            Text("\(number)")
                         }
                     }
                     .pickerStyle(.wheel)
@@ -50,7 +53,7 @@ struct ActiveEnergySelectionView: View {
     }
 
     #Preview {
-        @Previewable @State var kcal: Int = 30
+        @Previewable @State var kcal: Int = 300
         @Previewable @State var closeSelection: Bool = true
         ActiveEnergySelectionView(kcal: kcal, selectedKcal: $kcal, isSelectionPresented: $closeSelection)
 }
