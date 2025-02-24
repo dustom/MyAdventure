@@ -37,29 +37,26 @@ struct UserProfileView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack {
-                        ZStack {
-                            PhotosPicker(selection: $userPickedImage, matching: .images) {
+                        
+                        PhotosPicker(selection: $userPickedImage, matching: .images) {
+                            ZStack {
                                 Image(uiImage: userImage)
                                     .resizable()
                                     .scaledToFill()
-                            }
-                            .disabled(!isInEditMode)
-                            
-                            VStack{
-                                Spacer()
+                                
                                 if isInEditMode {
                                     VStack{
                                         Text("Edit")
-                                            .padding(.vertical, 5)
                                     }
-                                    .frame(maxWidth: .infinity)
-                                    .background(.thinMaterial)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .background(.thinMaterial.opacity(0.7))
                                 }
                             }
-                            
+                            .frame(width: 150, height: 150)
+                            .clipShape(Circle())
                         }
-                        .frame(width: 150, height: 150)
-                        .clipShape(Circle())
+                        .disabled(!isInEditMode)
+                        
                         
                         .onChange(of: userPickedImage) { _, _ in
                             Task {
@@ -70,6 +67,7 @@ struct UserProfileView: View {
                                         userImage = image
                                     }
                                 }
+                                userPickedImage = nil
                             }
                         }
                         

@@ -27,9 +27,12 @@ public struct DurationSelectionView: View {
                 .frame(width: 100, height: 150)
                 Text("hr")
                 
+                let minSize = 10
+                let range = stride(from: 0, through: 50, by: minSize)
+                
                 Picker("Select minutes", selection: $minutes) {
-                    ForEach(0...5, id: \.self) { number in
-                        Text("\(number*10)")
+                    ForEach(Array(range), id: \.self) { number in
+                        Text("\(number)")
                     }
                 }
                 .pickerStyle(.wheel)

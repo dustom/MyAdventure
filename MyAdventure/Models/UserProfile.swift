@@ -12,7 +12,7 @@ import UIKit
 @Model
 final class UserProfile: Identifiable {
     
-    @Attribute(.unique) var name: String
+    var name: String
     var height: Int
     var weight: Int
     var birthdate: Date

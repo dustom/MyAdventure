@@ -82,7 +82,7 @@ struct NewActivityView: View {
                             ClickableFormItemView(
                                 isSelectionPresented: $isDurationSelectionPresented,
                                 itemName: "Duration",
-                                itemData: "\(durationHr) hr \(Int(durationMin) * 10) min"
+                                itemData: "\(durationHr) hr \(Int(durationMin)) min"
                             ) {
                                 DurationSelectionView(
                                     hours: durationHr,
@@ -220,7 +220,7 @@ struct NewActivityView: View {
                 
                 // Calculate distance in kilometers and meters
                 distanceKm = Int(activity.distance)
-                distanceM = Int((activity.distance - Double(distanceKm)) * 10)
+                distanceM = Int((activity.distance - Double(distanceKm)))
                 
                 exertion = activity.exertion
                 selectedDate = activity.date

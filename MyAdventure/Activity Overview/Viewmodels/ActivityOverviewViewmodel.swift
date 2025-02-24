@@ -26,9 +26,9 @@ class ActivityOverviewViewmodel: ObservableObject {
             print("An error has occurred while loading activities: \(error.localizedDescription)")
             manager.handleHealthKitError(error)
         }
-    }    
+    }
     
-    func calculateActiveMinutes() -> Int {
+    func calculateActiveMinutes(from activities: [Activity]) -> Int {
         var activeMinutes: Int = 0
         let calendar = Calendar.current
         
@@ -46,7 +46,43 @@ class ActivityOverviewViewmodel: ObservableObject {
             }
         }
         
+        let todayActivities = activities.filter { $0.date >= .startOfDay && $0.date <= Date() }
+        
+        for activity in todayActivities {
+            activeMinutes += activity.duration
+        }
+        
         return activeMinutes
+    }
+    
+    func fetchToadyCalories(from activities: [Activity]) -> Int {
+        var calories: Int = 0
+        let todayActivities = activities.filter { $0.date >= .startOfDay && $0.date <= Date() }
+        for activity in todayActivities {
+            calories += activity.caloriesBurned
+            
+        }
+        return calories
+    }
+    
+    
+    func lastWeekMyActivities(from activities: [Activity]) -> [Activity] {
+        if activities.count > 0 {
+            let currentDate = Date()
+
+            // Calculate the start of the last week (7 days ago)
+            let calendar = Calendar.current
+            guard let startOfLastWeek = calendar.date(byAdding: .day, value: -7, to: currentDate) else {
+                fatalError("Could not calculate the start of the last week")
+            }
+
+            // Filter the array to include only entries from the last week
+            let lastWeekActivities = activities.filter { $0.date >= startOfLastWeek && $0.date <= currentDate }
+            return lastWeekActivities
+            
+        } else{
+            return []
+        }
     }
     
     private func createActivity(from healthWorkout: HKWorkout) -> Activity {

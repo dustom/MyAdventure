@@ -126,7 +126,7 @@ struct MyActivitiesView: View {
     private func deleteItems(offsets: IndexSet) {
             withAnimation {
                 for index in offsets {
-                    modelContext.delete(activities[index])
+                    modelContext.delete(myActivities[index])
                 }
             }
         }

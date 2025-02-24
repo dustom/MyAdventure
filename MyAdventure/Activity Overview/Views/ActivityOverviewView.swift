@@ -30,8 +30,9 @@ struct ActivityOverviewView: View {
     @State private var isPercentageActiveMinutesShown = false
     @State private var isPercentageCaloriesShown = false
     @State private var isPercentageQuestionMarkShown = false
+    @State private var todayCaloriesHK: Int = 0
     
-    //TODO: Add data from MyActivities to the overview
+    //TODO: Add data from MyActivities to the overview + create a limitation to display just last weeks activities, now it displays all activities
     
     var body: some View {
         NavigationStack{
@@ -128,7 +129,9 @@ struct ActivityOverviewView: View {
                                 progress: 0,
                                 unit: "",
                                 isPercantageShown: isPercentageQuestionMarkShown)
+                            .opacity(0)
                         }
+                        
                     }
                     .padding()
                 }
@@ -187,9 +190,9 @@ struct ActivityOverviewView: View {
         Task{
             isLoadingTodayData = true
             await vm.loadActivities()
-            displayedActivities = vm.lastWeekActivities + myActivities
+            displayedActivities = vm.lastWeekActivities + vm.lastWeekMyActivities(from: myActivities)
             displayedActivities = displayedActivities.sorted { $0.date > $1.date }
-            todayActiveMinutes = vm.calculateActiveMinutes()
+            todayActiveMinutes = vm.calculateActiveMinutes(from: myActivities)
             
             do {
                 todaySteps = try await manager.fetchTodaySteps()
@@ -200,12 +203,13 @@ struct ActivityOverviewView: View {
             }
             
             do {
-                todayCalories = try await manager.fetchTodayCalories()
+                todayCaloriesHK = try await manager.fetchTodayCalories()
             } catch {
                 todayCalories = 0
                 print("Authorization or fetch error with calories: \(error.localizedDescription)")
-                
             }
+            
+            todayCalories = todayCaloriesHK + vm.fetchToadyCalories(from: myActivities)
             
             isLoadingTodayData = false
         }
