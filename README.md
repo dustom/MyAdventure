@@ -1,7 +1,7 @@
 # MyAdventure
 MyAdventure is designed to give users control over their active lives with the ability to set goals and create manual activities. 
 
-![image_alt](https://github.com/dustom/AthleteWeather/blob/main/mockuuups-free-iphone-15-pro-hand-mockup2.png?raw=true)
+![image_alt](https://github.com/dustom/MyAdventure/blob/main/mockuuups-female-hand-holding-iphone-14-pro-mockup.png?raw=true)
 
 ## Technologies used
   - HealthKit
