@@ -58,6 +58,7 @@ struct UserProfileView: View {
                         .disabled(!isInEditMode)
                         
                         
+                        // when the user picks a different photo it is transfered to Data so it can be stored in SwiftData
                         .onChange(of: userPickedImage) { _, _ in
                             Task {
                                 if let userPickedImage,
@@ -118,6 +119,7 @@ struct UserProfileView: View {
                                 .onAppear {
                                     withAnimation(.smooth) {
                                         resetOtherSelections(except: "Height")
+                                        // the DispatchQueue makes sure, that the animation is completed and then it scrolls to the given item
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                                             scrollToItem("Height", proxy: proxy)
                                         }
@@ -246,61 +248,71 @@ struct UserProfileView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(isInEditMode ? "Done" : "Edit"){
+                        
+                        //this is not defined in the initialization part to make sure that he modelContext is passed from the environment
+                        let vm = UserProfileViewModel(modelContext: modelContext)
                         withAnimation {
                             isInEditMode.toggle()
                             
+                            // this makes sure that all form items are closed after saving the user profile
                             if !isInEditMode {
-                                isHeightEditPresented = false
-                                isWeightEditPresented = false
-                                isBirthdateEditPresented = false
-                                isActiveTimeEditPresented = false
-                                isEnergyBurnedEditPresented = false
-                                isStepsEditPresented = false
+                                closeEdit()
                             }
-                            
-                            let activeTime = (activeHours * 60) + activeMinutes*10
-                            let updatedUser = UserProfile(
-                                name: userName,
-                                height: height, weight: weight,
+                            // the userProfile is always saved after finishing editing
+                            vm.saveUserProfile(
+                                activeHours: activeHours,
+                                activeMinutes: activeMinutes,
+                                userName: userName,
+                                height: height,
+                                weight: weight,
                                 birthdate: birthdate,
                                 steps: steps,
-                                calories: activeEnergy,
-                                activeMinutes: activeTime,
-                                imageData: userImageData)
-                            
-                            modelContext.insert(updatedUser)
-                            
-                            do {
-                                try modelContext.save()
-                            } catch {
-                                print("Failed to save changes: \(error)")
-                            }
+                                activeEnergy: activeEnergy,
+                                userImageData: userImageData)
                         }
                     }
                 }
             }
         }
         .onAppear(){
-            let vm = UserProfileViewModel(modelContext: modelContext)
-            userName = vm.userProfile.name
-            birthdate = vm.userProfile.birthdate
-            activeMinutes = vm.userProfile.activeMinutes % 60
-            activeHours = vm.userProfile.activeMinutes/60
-            activeEnergy = vm.userProfile.calories
-            steps = vm.userProfile.steps
-            height = vm.userProfile.height
-            weight = vm.userProfile.weight
-            userImage = vm.userProfile.image ?? UIImage(resource: .heinrich)
+            loadUserData()
         }
         
     }
     
+    // method that loads (more like assigns, loading is done in the viewmodel) all user data
+    private func loadUserData() {
+        let vm = UserProfileViewModel(modelContext: modelContext)
+        userName = vm.userProfile.name
+        birthdate = vm.userProfile.birthdate
+        activeMinutes = vm.userProfile.activeMinutes % 60
+        activeHours = vm.userProfile.activeMinutes/60
+        activeEnergy = vm.userProfile.calories
+        steps = vm.userProfile.steps
+        height = vm.userProfile.height
+        weight = vm.userProfile.weight
+        userImage = vm.userProfile.image ?? UIImage(resource: .heinrich)
+    }
+    
+    // method that makes sure that no form field stays open after the user is done with editing
+    private func closeEdit() {
+        isHeightEditPresented = false
+        isWeightEditPresented = false
+        isBirthdateEditPresented = false
+        isActiveTimeEditPresented = false
+        isEnergyBurnedEditPresented = false
+        isStepsEditPresented = false
+    }
+    
+    // helper method to scroll to a specific item given on the input
     private func scrollToItem(_ id: String, proxy: ScrollViewProxy) {
         withAnimation {
             proxy.scrollTo(id, anchor: .top)
         }
     }
     
+    
+    // not very elegant way to ensure that only one form item is open for editing...
     private func resetOtherSelections(except selected: String) {
         switch selected {
         case "Height":

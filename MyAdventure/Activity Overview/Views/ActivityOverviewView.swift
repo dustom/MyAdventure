@@ -32,8 +32,6 @@ struct ActivityOverviewView: View {
     @State private var isPercentageQuestionMarkShown = false
     @State private var todayCaloriesHK: Int = 0
     
-    //TODO: Add data from MyActivities to the overview + create a limitation to display just last weeks activities, now it displays all activities
-    
     var body: some View {
         NavigationStack{
             ScrollView {
@@ -47,7 +45,7 @@ struct ActivityOverviewView: View {
                         contentView
                     }
                 case .error:
-                    //an empty view is here bcs the error is handled in the viewmodel
+                    //an empty view is here because the error is handled in the viewmodel
                     EmptyView()
                 }
             }
@@ -108,6 +106,8 @@ struct ActivityOverviewView: View {
                                 }
                             }
                         }
+                        
+                        // this circle is a placeholder for another metric that should be added
                         HStack {
                             CircleViewStyle(
                                 color: .orange,
@@ -181,6 +181,7 @@ struct ActivityOverviewView: View {
     }
     
     private func reloadData() {
+        // all is data is calculated based on the user profile goals
         let userProfileVM = UserProfileViewModel(modelContext: modelContext)
         let user = userProfileVM.userProfile
         todayStepGoal = user.steps
@@ -188,8 +189,11 @@ struct ActivityOverviewView: View {
         todayActiveMinutesGoal = user.activeMinutes
         
         Task{
+            // isLoadingTodayData makes sure that the variables are all filled before showing the overview
             isLoadingTodayData = true
             await vm.loadActivities()
+            
+            //this makes sure that the overview shows HK workouts nad the App activities
             displayedActivities = vm.lastWeekActivities + vm.lastWeekMyActivities(from: myActivities)
             displayedActivities = displayedActivities.sorted { $0.date > $1.date }
             todayActiveMinutes = vm.calculateActiveMinutes(from: myActivities)
@@ -198,17 +202,19 @@ struct ActivityOverviewView: View {
                 todaySteps = try await manager.fetchTodaySteps()
             } catch {
                 todaySteps = 0
+                // if thhere is an error concerning authorization, it should be handled in the viewmodel
                 print("Authorization or fetch error with steps: \(error.localizedDescription)")
-                
             }
             
             do {
                 todayCaloriesHK = try await manager.fetchTodayCalories()
             } catch {
                 todayCalories = 0
+                // if thhere is an error concerning authorization, it should be handled in the viewmodel
                 print("Authorization or fetch error with calories: \(error.localizedDescription)")
             }
             
+            // combine the HK data and app data to show the real progress
             todayCalories = todayCaloriesHK + vm.fetchToadyCalories(from: myActivities)
             
             isLoadingTodayData = false

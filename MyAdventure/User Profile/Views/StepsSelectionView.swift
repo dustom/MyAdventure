@@ -17,8 +17,10 @@ struct StepsSelectionView: View {
         VStack {
             HStack {
                 Spacer()
+                
+                //this part makes sure that the wheel picker has a specified step
                 let stepSize = 500
-                let range = stride(from: 0, through: 100_000, by: stepSize) // 0 to 100,000 in steps of 2,000
+                let range = stride(from: 0, through: 100_000, by: stepSize)
 
                 Picker("Select steps", selection: $steps) {
                     ForEach(Array(range), id: \.self) { number in
@@ -35,6 +37,7 @@ struct StepsSelectionView: View {
             Button {
                 selectedSteps = steps
                 withAnimation(.smooth){
+                    // this variable gives info to the parent view that the user has ended their action
                     isSelectionPresented = false
                 }
             } label: {

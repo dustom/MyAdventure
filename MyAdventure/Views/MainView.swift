@@ -40,6 +40,7 @@ struct MainView: View {
                         .foregroundStyle(.primary)
                 }
         }
+        // when the app starts the health manager is initialized (asks for permission to read/write if necessary)
         .onAppear {
             Task {
                 do {

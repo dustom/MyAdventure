@@ -35,6 +35,7 @@ struct ActiveEnergySelectionView: View {
                 Button {
                     selectedKcal = kcal
                     withAnimation(.smooth){
+                        // this variable gives info to the parent view that the user has ended their action
                         isSelectionPresented = false
                     }
                 } label: {

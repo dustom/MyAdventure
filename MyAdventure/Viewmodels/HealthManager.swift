@@ -10,12 +10,13 @@ import HealthKit
 import SwiftUI
 
 class HealthManager: ObservableObject {
-    
-    //TODO: try to set up anchor to fetch only new activities and not duplicates
-    
+
+    // is HealthKitInitialized makes shure that the fetch methods won't try do ask for data befere initialization
     private var isHealthKitInitialized = false
     private let healthStore = HKHealthStore()
     
+    
+    // method that handles any error that mgith occur while working with HealthStore
     func handleHealthKitError(_ error: Error) {
         if let healthKitError = error as? HKError {
             switch healthKitError.code {
@@ -58,6 +59,7 @@ class HealthManager: ObservableObject {
             let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default))
             
+            // user can be easily led to setting where they can allow Health Data
             if openSettings {
                 alert.addAction(UIAlertAction(title: "Go to Settings", style: .default) { _ in
                     if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
@@ -74,11 +76,14 @@ class HealthManager: ObservableObject {
         }
     }
     
+    
+    // method to initialize HealthKit capabilities
     func initializeHealthStore() async throws {
         guard HKHealthStore.isHealthDataAvailable() else {
             throw NSError(domain: "HealthKit", code: -1, userInfo: [NSLocalizedDescriptionKey: "Health data is not available on this device."])
         }
         
+        // this set represents all items to be allowed
         let allTypes: Set = [
             HKQuantityType.workoutType(),
             HKQuantityType(.activeEnergyBurned),
@@ -87,6 +92,7 @@ class HealthManager: ObservableObject {
             HKQuantityType(.stepCount)
         ]
         
+        // ask user for Authorization
         do {
             try await healthStore.requestAuthorization(toShare: allTypes, read: allTypes)
         } catch {
@@ -94,19 +100,29 @@ class HealthManager: ObservableObject {
         }
     }
     
-    
-    func fetchTodaySteps() async throws -> Int {
 
+    
+    // method that fetches all steps that were made that day
+    func fetchTodaySteps() async throws -> Int {
         
+        // make sure that HK was initialized
+        if !isHealthKitInitialized {
+                try await initializeHealthStore()
+            }
+        
+        // create predicate for today and for desired data - steps
         let steps = HKQuantityType(.stepCount)
         let predicate = HKQuery.predicateForSamples(withStart: .startOfDay, end: Date())
         
         
+        //check wheter user authorized the app to use HK data, otherwise show alert with the ability to go to settings
         let status = healthStore.authorizationStatus(for: steps)
         
+        
         if status == .sharingAuthorized {
-            
             return try await withCheckedThrowingContinuation { continuation in
+               
+                // try to fetch today's steps from HK
                 let query = HKStatisticsQuery(quantityType: steps, quantitySamplePredicate: predicate) { _, result, error in
                     if let error = error {
                         continuation.resume(throwing: NSError(domain: "HealthKit", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch step count: \(error.localizedDescription)"]))
@@ -119,6 +135,7 @@ class HealthManager: ObservableObject {
                         return
                     }
                     
+                    //after the fetching from HK is done, return actual step count
                     let stepsCount = result.doubleValue(for: .count())
                     continuation.resume(returning: Int(stepsCount))
                 }
@@ -131,6 +148,7 @@ class HealthManager: ObservableObject {
         }
     }
     
+    // method that fetches calories that were burned that day, works basically the same as fetchTodaySteps
     func fetchTodayCalories() async throws -> Int {
         
         if !isHealthKitInitialized {
@@ -169,6 +187,8 @@ class HealthManager: ObservableObject {
         }
     }
     
+    
+    // method that fetches last week's workouts works basically the same as fetchTodaySteps and fetchTodayCalories but with different predicate
     func fetchLastWeekWorkouts() async throws -> [HKWorkout] {
         
         if !isHealthKitInitialized {
@@ -178,6 +198,7 @@ class HealthManager: ObservableObject {
         let workoutType = HKWorkoutType.workoutType()
         
         
+        // calculate what time it was one week ago
         guard let oneWeekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) else {
             throw NSError(domain: "DateCalculationError", code: -1, userInfo: nil)
         }
@@ -215,6 +236,9 @@ class HealthManager: ObservableObject {
         }
     }
     
+    
+    
+    //method that fetches all workouts stored in Health, works basically the same as the other fetch methods
     func fetchAllWorkouts() async throws -> [HKWorkout] {
         
         if !isHealthKitInitialized {
@@ -255,6 +279,8 @@ class HealthManager: ObservableObject {
         
     }
     
+    
+    // method that returns authorization status for given identifier, ie steps, activeEnergy etc.
     func checkAccess(for identifier: HKQuantityTypeIdentifier) -> HKAuthorizationStatus {
 
         guard let quantityType = HKQuantityType.quantityType(forIdentifier: identifier) else {

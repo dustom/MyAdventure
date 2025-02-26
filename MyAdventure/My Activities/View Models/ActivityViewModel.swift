@@ -17,7 +17,6 @@ class ActivityViewModel: ObservableObject {
      func formatDuration(_ minutes: Int) -> String {
         if minutes >= 120 {
             let hours = Double(minutes) / 60.0
-            // Show as integer if whole number
             return hours.truncatingRemainder(dividingBy: 1) == 0 ?
                 "\(Int(hours)) h" :
                 String(format: "%.1f h", hours)
@@ -25,6 +24,8 @@ class ActivityViewModel: ObservableObject {
         return "\(minutes) min"
     }
     
+    
+    // if the acitivity type is running or hiking the rate is calculated to show pace rather then speed
      func calculateRate(activity: Activity) -> String {
         guard activity.distance > 0 else { return "" }
         
@@ -61,19 +62,19 @@ class ActivityViewModel: ObservableObject {
     }
     
     
+    // method that transforms HKWorkout to the Activity data type
     private func createActivity(from healthWorkout: HKWorkout) -> Activity {
         let activityType = healthWorkout.workoutActivityType.name
         
-        // 2. Duration (in seconds)
+
         let duration = Int(healthWorkout.duration / 60)
         
-        // 3. Distance (if available)
+      
         let distanceInMeters = healthWorkout.totalDistance?.doubleValue(for: .meter()) ?? 0.0
         let distanceInKilometers = distanceInMeters / 1000
         
         let date = healthWorkout.startDate
         
-        //TODO: could calculate exertion based on HR
         
         let activity = Activity(
             name: activityType,
@@ -89,14 +90,16 @@ class ActivityViewModel: ObservableObject {
         return activity
     }
     
+    
+    
     @MainActor func loadActivities() async {
-        state = .loading // Set state to loading
+        state = .loading
         do {
             let workouts = try await manager.fetchAllWorkouts()
             allActivites = workouts.map { createActivity(from: $0) }
-            state = .loaded // Set state to loaded
+            state = .loaded
         } catch {
-            state = .error(error) // Set state to error
+            state = .error(error)
             print("An error has occurred while loading activities: \(error.localizedDescription)")
             manager.handleHealthKitError(error)
         }

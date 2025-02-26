@@ -33,6 +33,7 @@ struct HeightWeightSelectionView: View {
                 Button {
                     selectedValue = value
                     withAnimation(.smooth){
+                        // this variable gives info to the parent view that the user has ended their action
                         isSelectionPresented = false
                     }
                 } label: {

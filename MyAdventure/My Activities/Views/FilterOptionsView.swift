@@ -17,8 +17,6 @@ struct FilterOptionsView: View {
         selectedActivities == Set(ActivityType.allCases)
     }
     
-    //TODO: fix a bug - when deselecting all and coming back, the all is selected alone - makes sense, the sheet is generated again and with that selectAllActivities is set to True
-    
     var body: some View {
         NavigationStack {
             List {

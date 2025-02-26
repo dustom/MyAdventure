@@ -9,9 +9,8 @@ import SwiftUI
 
 struct NewActivityView: View {
     
-    @Environment(\.modelContext)  var modelContext
-    @Environment(\.dismiss)  var dismiss
-    @StateObject private var vm = NewActivityViewModel()
+    @Environment(\.modelContext) var modelContext
+    @Environment(\.dismiss) var dismiss
     @State var name: String = ""
     @State var activityType: ActivityType = .running
     @State var activityDescription: String = ""
@@ -20,7 +19,6 @@ struct NewActivityView: View {
     @State var isActivityTypeSelectionPresented = false
     @State var isExertionSelectionPresented = false
     @State var isDateSelectionPresented = false
-    @State var selectedItemID: String? = nil // Track the selected item
     @State var distanceKm: Int = 0
     @State var distanceM: Int = 0
     @State var durationHr: Int = 0
@@ -33,7 +31,7 @@ struct NewActivityView: View {
     @State var isEmptyNameAlertPresented = false
     var wasEmptyNameAlertPresented = false
     var editActivity: Activity?
-
+    
     
     var body: some View {
         NavigationStack {
@@ -162,17 +160,17 @@ struct NewActivityView: View {
                                 date: selectedDate,
                                 selectedDate: $selectedDate,
                                 isSelectionPresented: $isDateSelectionPresented)
-                                .onAppear(){
-                                    withAnimation(.smooth){
-                                        resetOtherSelections(except: "Date")
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                            scrollToItem("Date", proxy: proxy)
-                                        }
+                            .onAppear(){
+                                withAnimation(.smooth){
+                                    resetOtherSelections(except: "Date")
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        scrollToItem("Date", proxy: proxy)
                                     }
                                 }
+                            }
                         }
                         .padding(.bottom)
-                        .id("Date") // Assign unique ID
+                        .id("Date")
                         
                     }
                 }
@@ -185,7 +183,7 @@ struct NewActivityView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Save") {
-                        addItem()
+                        saveActivity()
                     }
                 }
                 ToolbarItem(placement: .topBarLeading) {
@@ -226,6 +224,8 @@ struct NewActivityView: View {
                 selectedDate = activity.date
             }
         }
+        
+        //alert that makes sure that the user actually wants to leave without saving the activity
         .alert(isPresented: $isCancelAlertPresented) {
             Alert(
                 title: Text("Are you sure?"),
@@ -246,50 +246,38 @@ struct NewActivityView: View {
         }
     }
     
-    private func addItem() {
-        let userProfileVM = UserProfileViewModel(modelContext: modelContext)
-        let user = userProfileVM.userProfile
+    private func saveActivity() {
+        let vm = NewActivityViewModel(modelContext: modelContext)
         
         if name.isEmpty {
             isEmptyNameAlertPresented = true
         } else {
             withAnimation {
-                let duration = Int(durationHr) * 60 + Int(durationMin)
-                let distance = Double(distanceKm) + Double(distanceM) / 10
-
                 if let activity = editActivity {
-                    // Update the existing activity
-                    activity.name = name
-                    activity.activityType = activityType.rawValue
-                    activity.activityDescription = activityDescription
-                    activity.duration = duration
-                    activity.distance = distance
-                    activity.exertion = exertion
-                    activity.date = selectedDate
-                    activity.caloriesBurned = vm.calculateCalories(activityDuration: duration, exertion: exertion, user: user)
-                } else {
-                    // Create a new activity
-                    let newItem = Activity(
+                    vm.editActivity(
+                        activity: activity,
                         name: name,
-                        activityType: activityType.rawValue,
+                        activityType: activityType,
                         activityDescription: activityDescription,
-                        duration: duration,
-                        distance: distance,
+                        durationHr: durationHr,
+                        durationMin: durationMin,
+                        distanceKm: distanceKm,
+                        distanceM: distanceM,
                         exertion: exertion,
-                        date: selectedDate,
-                        myActivity: true,
-                        caloriesBurned: vm.calculateCalories(activityDuration: duration, exertion: exertion, user: user)
-                    )
-                    modelContext.insert(newItem)
+                        selectedDate: selectedDate)
+                    
+                } else {
+                    vm.addNewActivity(
+                        name: name,
+                        activityType: activityType,
+                        activityDescription: activityDescription,
+                        durationHr: durationHr,
+                        durationMin: durationMin,
+                        distanceKm: distanceKm,
+                        distanceM: distanceM,
+                        exertion: exertion,
+                        selectedDate: selectedDate)
                 }
-
-                // Save changes to the context
-                do {
-                    try modelContext.save()
-                } catch {
-                    print("Failed to save changes: \(error)")
-                }
-
                 dismiss() // Dismiss the view after saving
             }
         }

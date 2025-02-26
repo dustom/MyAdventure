@@ -11,6 +11,8 @@ import SwiftData
 @main
 struct MyAdventureApp: App {
     @StateObject var healthManager = HealthManager()
+    
+    // swift data calculated property, the schema holds two data types needed for storage
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Activity.self,
@@ -31,6 +33,7 @@ struct MyAdventureApp: App {
             MainView()
                 .preferredColorScheme(.dark)
         }
+        //singletons for model container and healthmanager to be used through the whole app
         .modelContainer(sharedModelContainer)
         .environmentObject(healthManager)
        

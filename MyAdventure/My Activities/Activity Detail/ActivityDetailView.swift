@@ -16,7 +16,6 @@ struct ActivityDetailView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    // Header
                     
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
@@ -40,7 +39,7 @@ struct ActivityDetailView: View {
                         }
                     }
                     
-                    // Metrics Grid
+        
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
                         MetricCell(value: vm.formatDuration(activity.duration), label: "Duration")
                         MetricCell(value: String(format: "%.1f km", activity.distance), label: "Distance")
@@ -55,7 +54,7 @@ struct ActivityDetailView: View {
                         }
                     }
                     
-                    // Description
+            
                     if activity.activityDescription != "" {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Description")
@@ -68,7 +67,7 @@ struct ActivityDetailView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding()
                         .background(.thickMaterial)
-                        .cornerRadius(12)
+                        .cornerRadius(15)
                     }
                     
                     
