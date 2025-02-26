@@ -12,7 +12,7 @@ import SwiftData
 class UserProfileViewModel: ObservableObject {
     private var savedUserProfile = [UserProfile]()
     
-    // computed property that either return user profile from SwiftData (if there is any) or returns default user
+    // computed property that either returns user profile from SwiftData (if there is any) or returns default user
     var userProfile: UserProfile {
         guard !savedUserProfile.isEmpty else {
             return UserProfile(name: "Name", height: 180, weight: 70, birthdate: Date(), steps: 10000, calories: 400, activeMinutes: 60, imageData: nil)
