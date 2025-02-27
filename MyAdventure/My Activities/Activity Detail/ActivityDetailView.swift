@@ -21,6 +21,8 @@ struct ActivityDetailView: View {
                         HStack {
                             Text(activity.name)
                                 .font(.title2.bold())
+                                .multilineTextAlignment(.leading)
+                                .lineLimit(1)
                             
                             Image(systemName: vm.getActivityIcon(for: activity.activityType))
                                 .font(.title3)
