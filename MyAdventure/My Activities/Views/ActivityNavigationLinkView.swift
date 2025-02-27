@@ -26,7 +26,6 @@ struct ActivityNavigationLinkView: View {
                             .font(.title3)
                             .multilineTextAlignment(.leading)
                             .lineLimit(1)
-                            .minimumScaleFactor(0.5)
                         if !activity.myActivity {
                             Image(systemName: "square.and.arrow.down.fill")
                         }
